@@ -1,0 +1,78 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+<circle cx="74" cy="74" r="4" fill="#C83434"/>
+<circle cx="114" cy="74" r="4" fill="#C83434"/>
+<circle cx="34" cy="74" r="4" fill="#C83434"/>
+<circle cx="54" cy="54" r="4" fill="#C83434"/>
+<circle cx="94" cy="54" r="4" fill="#C83434"/>
+<circle cx="14" cy="54" r="4" fill="#C83434"/>
+<circle cx="74" cy="34" r="4" fill="#C83434"/>
+<circle cx="114" cy="34" r="4" fill="#C83434"/>
+<circle cx="34" cy="34" r="4" fill="#C83434"/>
+<circle cx="54" cy="14" r="4" fill="#C83434"/>
+<circle cx="94" cy="14" r="4" fill="#C83434"/>
+<circle cx="14" cy="14" r="4" fill="#C83434"/>
+<circle cx="54" cy="94" r="4" fill="#C83434"/>
+<circle cx="94" cy="94" r="4" fill="#C83434"/>
+<circle cx="14" cy="94" r="4" fill="#C83434"/>
+<circle cx="74" cy="114" r="4" fill="#C83434"/>
+<circle cx="114" cy="114" r="4" fill="#C83434"/>
+<circle cx="34" cy="114" r="4" fill="#C83434"/>
+<rect width="4" height="19" transform="matrix(0 -1 -1 0 34 16)" fill="#C83434"/>
+<rect width="4" height="19" transform="matrix(0 -1 -1 0 73 16)" fill="#C83434"/>
+<rect width="4" height="19" transform="matrix(0 -1 -1 0 113 16)" fill="#C83434"/>
+<rect width="4" height="19" transform="matrix(0 -1 -1 0 36 36)" fill="#C83434"/>
+<rect width="4" height="19" transform="matrix(0 -1 -1 0 75 36)" fill="#C83434"/>
+<rect width="4" height="19" transform="matrix(0 -1 -1 0 115 36)" fill="#C83434"/>
+<rect width="4" height="19" transform="matrix(0 -1 -1 0 35 56)" fill="#C83434"/>
+<rect width="4" height="19" transform="matrix(0 -1 -1 0 74 56)" fill="#C83434"/>
+<rect width="4" height="19" transform="matrix(0 -1 -1 0 114 56)" fill="#C83434"/>
+<rect width="4" height="19" transform="matrix(0 -1 -1 0 35 76)" fill="#C83434"/>
+<rect width="4" height="19" transform="matrix(0 -1 -1 0 74 76)" fill="#C83434"/>
+<rect width="4" height="19" transform="matrix(0 -1 -1 0 114 76)" fill="#C83434"/>
+<rect width="4" height="19" transform="matrix(0 -1 -1 0 35 96)" fill="#C83434"/>
+<rect width="4" height="19" transform="matrix(0 -1 -1 0 74 96)" fill="#C83434"/>
+<rect width="4" height="19" transform="matrix(0 -1 -1 0 114 96)" fill="#C83434"/>
+<rect width="4" height="19" transform="matrix(0 -1 -1 0 35 116)" fill="#C83434"/>
+<rect width="4" height="19" transform="matrix(0 -1 -1 0 74 116)" fill="#C83434"/>
+<rect width="4" height="19" transform="matrix(0 -1 -1 0 114 116)" fill="#C83434"/>
+<circle cx="34" cy="14" r="5" fill="#57ACDC"/>
+<circle cx="34" cy="14" r="3" fill="#496989"/>
+<path d="M79 14C79 16.7614 76.7614 19 74 19C71.2386 19 69 16.7614 69 14C69 11.2385 71.2386 8.99997 74 8.99997C76.7614 8.99997 79 11.2385 79 14Z" fill="#57ACDC"/>
+<circle cx="74" cy="14" r="3" fill="#496989"/>
+<path d="M119 14C119 16.7614 116.761 19 114 19C111.239 19 109 16.7614 109 14C109 11.2385 111.239 8.99997 114 8.99997C116.761 8.99997 119 11.2385 119 14Z" fill="#57ACDC"/>
+<circle cx="114" cy="14" r="3" fill="#496989"/>
+<circle cx="14" cy="34" r="5" fill="#57ACDC"/>
+<circle cx="14" cy="34" r="3" fill="#496989"/>
+<path d="M59 34C59 36.7614 56.7614 39 54 39C51.2386 39 49 36.7614 49 34C49 31.2386 51.2386 29 54 29C56.7614 29 59 31.2386 59 34Z" fill="#57ACDC"/>
+<circle cx="54" cy="34" r="3" fill="#496989"/>
+<path d="M99 34C99 36.7614 96.7614 39 94 39C91.2386 39 89 36.7614 89 34C89 31.2386 91.2386 29 94 29C96.7614 29 99 31.2386 99 34Z" fill="#57ACDC"/>
+<circle cx="94" cy="34" r="3" fill="#496989"/>
+<circle cx="34" cy="54" r="5" fill="#57ACDC"/>
+<circle cx="34" cy="54" r="3" fill="#496989"/>
+<path d="M79 54C79 56.7614 76.7614 59 74 59C71.2386 59 69 56.7614 69 54C69 51.2386 71.2386 49 74 49C76.7614 49 79 51.2386 79 54Z" fill="#57ACDC"/>
+<circle cx="74" cy="54" r="3" fill="#496989"/>
+<path d="M119 54C119 56.7614 116.761 59 114 59C111.239 59 109 56.7614 109 54C109 51.2386 111.239 49 114 49C116.761 49 119 51.2386 119 54Z" fill="#57ACDC"/>
+<circle cx="114" cy="54" r="3" fill="#496989"/>
+<circle cx="14" cy="74" r="5" fill="#57ACDC"/>
+<circle cx="14" cy="74" r="3" fill="#496989"/>
+<path d="M59 74C59 76.7614 56.7614 79 54 79C51.2386 79 49 76.7614 49 74C49 71.2386 51.2386 69 54 69C56.7614 69 59 71.2386 59 74Z" fill="#57ACDC"/>
+<circle cx="54" cy="74" r="3" fill="#496989"/>
+<path d="M99 74C99 76.7614 96.7614 79 94 79C91.2386 79 89 76.7614 89 74C89 71.2386 91.2386 69 94 69C96.7614 69 99 71.2386 99 74Z" fill="#57ACDC"/>
+<circle cx="94" cy="74" r="3" fill="#496989"/>
+<circle cx="34" cy="94" r="5" fill="#57ACDC"/>
+<circle cx="34" cy="94" r="3" fill="#496989"/>
+<path d="M79 94C79 96.7614 76.7614 99 74 99C71.2386 99 69 96.7614 69 94C69 91.2386 71.2386 89 74 89C76.7614 89 79 91.2386 79 94Z" fill="#57ACDC"/>
+<circle cx="74" cy="94" r="3" fill="#496989"/>
+<path d="M119 94C119 96.7614 116.761 99 114 99C111.239 99 109 96.7614 109 94C109 91.2386 111.239 89 114 89C116.761 89 119 91.2386 119 94Z" fill="#57ACDC"/>
+<circle cx="114" cy="94" r="3" fill="#496989"/>
+<circle cx="14" cy="114" r="5" fill="#57ACDC"/>
+<circle cx="14" cy="114" r="3" fill="#496989"/>
+<path d="M59 114C59 116.761 56.7614 119 54 119C51.2386 119 49 116.761 49 114C49 111.239 51.2386 109 54 109C56.7614 109 59 111.239 59 114Z" fill="#57ACDC"/>
+<circle cx="54" cy="114" r="3" fill="#496989"/>
+<path d="M99 114C99 116.761 96.7614 119 94 119C91.2386 119 89 116.761 89 114C89 111.239 91.2386 109 94 109C96.7614 109 99 111.239 99 114Z" fill="#57ACDC"/>
+<circle cx="94" cy="114" r="3" fill="#496989"/>
+<rect width="4" height="128" fill="#F5B041"/>
+<rect x="124" width="4" height="128" fill="#F5B041"/>
+<rect y="4" width="4" height="128" transform="rotate(-90 0 4)" fill="#F5B041"/>
+<rect width="4" height="128" transform="matrix(0 1 1 0 0 124)" fill="#F5B041"/>
+</svg>

@@ -1,0 +1,7 @@
+kicad-python>=0.5.0
+PySide6
+numpy
+qrcode
+shapely
+opencv-python
+Pillow

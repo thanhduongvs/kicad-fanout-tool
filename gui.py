@@ -1,0 +1,146 @@
+# -*- coding: utf-8 -*-
+
+################################################################################
+## Form generated from reading UI file 'gui.ui'
+##
+## Created by: Qt User Interface Compiler version 6.10.2
+##
+## WARNING! All changes made in this file will be lost when recompiling UI file!
+################################################################################
+
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QGroupBox,
+    QLabel, QLineEdit, QMainWindow, QMenuBar,
+    QPushButton, QSizePolicy, QStatusBar, QWidget)
+
+class Ui_MainWindow(object):
+    def setupUi(self, MainWindow):
+        if not MainWindow.objectName():
+            MainWindow.setObjectName(u"MainWindow")
+        MainWindow.resize(667, 748)
+        self.centralwidget = QWidget(MainWindow)
+        self.centralwidget.setObjectName(u"centralwidget")
+        self.comboReference = QComboBox(self.centralwidget)
+        self.comboReference.setObjectName(u"comboReference")
+        self.comboReference.setGeometry(QRect(150, 360, 111, 26))
+        self.labelReference = QLabel(self.centralwidget)
+        self.labelReference.setObjectName(u"labelReference")
+        self.labelReference.setGeometry(QRect(50, 370, 81, 18))
+        self.textTrackWidth = QLineEdit(self.centralwidget)
+        self.textTrackWidth.setObjectName(u"textTrackWidth")
+        self.textTrackWidth.setGeometry(QRect(150, 110, 113, 26))
+        self.labelTrackWidth = QLabel(self.centralwidget)
+        self.labelTrackWidth.setObjectName(u"labelTrackWidth")
+        self.labelTrackWidth.setGeometry(QRect(50, 110, 91, 18))
+        self.labelViaDiameter = QLabel(self.centralwidget)
+        self.labelViaDiameter.setObjectName(u"labelViaDiameter")
+        self.labelViaDiameter.setGeometry(QRect(20, 160, 111, 18))
+        self.textViaDiameter = QLineEdit(self.centralwidget)
+        self.textViaDiameter.setObjectName(u"textViaDiameter")
+        self.textViaDiameter.setGeometry(QRect(150, 160, 113, 26))
+        self.textViaHole = QLineEdit(self.centralwidget)
+        self.textViaHole.setObjectName(u"textViaHole")
+        self.textViaHole.setGeometry(QRect(150, 200, 113, 26))
+        self.labelViaHole = QLabel(self.centralwidget)
+        self.labelViaHole.setObjectName(u"labelViaHole")
+        self.labelViaHole.setGeometry(QRect(50, 200, 81, 18))
+        self.labelViaType = QLabel(self.centralwidget)
+        self.labelViaType.setObjectName(u"labelViaType")
+        self.labelViaType.setGeometry(QRect(60, 240, 81, 18))
+        self.comboViaType = QComboBox(self.centralwidget)
+        self.comboViaType.setObjectName(u"comboViaType")
+        self.comboViaType.setGeometry(QRect(150, 240, 111, 26))
+        self.checkSkipPad = QCheckBox(self.centralwidget)
+        self.checkSkipPad.setObjectName(u"checkSkipPad")
+        self.checkSkipPad.setGeometry(QRect(150, 400, 141, 23))
+        self.checkViaInPad = QCheckBox(self.centralwidget)
+        self.checkViaInPad.setObjectName(u"checkViaInPad")
+        self.checkViaInPad.setGeometry(QRect(50, 400, 91, 23))
+        self.comboStartLayer = QComboBox(self.centralwidget)
+        self.comboStartLayer.setObjectName(u"comboStartLayer")
+        self.comboStartLayer.setGeometry(QRect(150, 280, 111, 26))
+        self.labelStartlayer = QLabel(self.centralwidget)
+        self.labelStartlayer.setObjectName(u"labelStartlayer")
+        self.labelStartlayer.setGeometry(QRect(60, 280, 81, 18))
+        self.labelEndlayer = QLabel(self.centralwidget)
+        self.labelEndlayer.setObjectName(u"labelEndlayer")
+        self.labelEndlayer.setGeometry(QRect(60, 320, 81, 18))
+        self.comboEndLayer = QComboBox(self.centralwidget)
+        self.comboEndLayer.setObjectName(u"comboEndLayer")
+        self.comboEndLayer.setGeometry(QRect(150, 320, 111, 26))
+        self.labelUnit = QLabel(self.centralwidget)
+        self.labelUnit.setObjectName(u"labelUnit")
+        self.labelUnit.setGeometry(QRect(60, 70, 81, 18))
+        self.comboUnit = QComboBox(self.centralwidget)
+        self.comboUnit.setObjectName(u"comboUnit")
+        self.comboUnit.setGeometry(QRect(150, 70, 111, 26))
+        self.buttonFanout = QPushButton(self.centralwidget)
+        self.buttonFanout.setObjectName(u"buttonFanout")
+        self.buttonFanout.setGeometry(QRect(110, 470, 94, 26))
+        self.groupImagePreview = QGroupBox(self.centralwidget)
+        self.groupImagePreview.setObjectName(u"groupImagePreview")
+        self.groupImagePreview.setGeometry(QRect(320, 60, 251, 261))
+        self.comboPackage = QComboBox(self.centralwidget)
+        self.comboPackage.setObjectName(u"comboPackage")
+        self.comboPackage.setGeometry(QRect(160, 510, 111, 26))
+        self.labelPackage = QLabel(self.centralwidget)
+        self.labelPackage.setObjectName(u"labelPackage")
+        self.labelPackage.setGeometry(QRect(50, 520, 81, 18))
+        self.labelAlignment = QLabel(self.centralwidget)
+        self.labelAlignment.setObjectName(u"labelAlignment")
+        self.labelAlignment.setGeometry(QRect(60, 580, 81, 18))
+        self.comboAlignment = QComboBox(self.centralwidget)
+        self.comboAlignment.setObjectName(u"comboAlignment")
+        self.comboAlignment.setGeometry(QRect(30, 610, 161, 26))
+        self.labelDirection = QLabel(self.centralwidget)
+        self.labelDirection.setObjectName(u"labelDirection")
+        self.labelDirection.setGeometry(QRect(220, 580, 81, 18))
+        self.comboDirection = QComboBox(self.centralwidget)
+        self.comboDirection.setObjectName(u"comboDirection")
+        self.comboDirection.setGeometry(QRect(210, 610, 131, 26))
+        self.comboSpacing = QComboBox(self.centralwidget)
+        self.comboSpacing.setObjectName(u"comboSpacing")
+        self.comboSpacing.setGeometry(QRect(370, 610, 111, 26))
+        self.labelSpacing = QLabel(self.centralwidget)
+        self.labelSpacing.setObjectName(u"labelSpacing")
+        self.labelSpacing.setGeometry(QRect(390, 570, 81, 18))
+        MainWindow.setCentralWidget(self.centralwidget)
+        self.menubar = QMenuBar(MainWindow)
+        self.menubar.setObjectName(u"menubar")
+        self.menubar.setGeometry(QRect(0, 0, 667, 23))
+        MainWindow.setMenuBar(self.menubar)
+        self.statusbar = QStatusBar(MainWindow)
+        self.statusbar.setObjectName(u"statusbar")
+        MainWindow.setStatusBar(self.statusbar)
+
+        self.retranslateUi(MainWindow)
+
+        QMetaObject.connectSlotsByName(MainWindow)
+    # setupUi
+
+    def retranslateUi(self, MainWindow):
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
+        self.labelReference.setText(QCoreApplication.translate("MainWindow", u"Reference:", None))
+        self.labelTrackWidth.setText(QCoreApplication.translate("MainWindow", u"Track Width:", None))
+        self.labelViaDiameter.setText(QCoreApplication.translate("MainWindow", u"Via Diameter:", None))
+        self.labelViaHole.setText(QCoreApplication.translate("MainWindow", u"Via Hole:", None))
+        self.labelViaType.setText(QCoreApplication.translate("MainWindow", u"ViaType:", None))
+        self.checkSkipPad.setText(QCoreApplication.translate("MainWindow", u"Skip Unused Pads", None))
+        self.checkViaInPad.setText(QCoreApplication.translate("MainWindow", u"Via in Pad", None))
+        self.labelStartlayer.setText(QCoreApplication.translate("MainWindow", u"Start Layer:", None))
+        self.labelEndlayer.setText(QCoreApplication.translate("MainWindow", u"End Layer:", None))
+        self.labelUnit.setText(QCoreApplication.translate("MainWindow", u"Unit:", None))
+        self.buttonFanout.setText(QCoreApplication.translate("MainWindow", u"Fanout", None))
+        self.groupImagePreview.setTitle(QCoreApplication.translate("MainWindow", u"Preview:", None))
+        self.labelPackage.setText(QCoreApplication.translate("MainWindow", u"Reference:", None))
+        self.labelAlignment.setText(QCoreApplication.translate("MainWindow", u"Alignment:", None))
+        self.labelDirection.setText(QCoreApplication.translate("MainWindow", u"Direction:", None))
+        self.labelSpacing.setText(QCoreApplication.translate("MainWindow", u"Spacing:", None))
+    # retranslateUi
+
