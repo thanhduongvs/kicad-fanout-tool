@@ -1,152 +1,6 @@
 {
     "package": [
         {
-            "name": "SOIC",
-            "alignment": [
-                {
-                    "name": "Aligned, multiple rows",
-                    "direction": [
-                        {
-                            "name": "Inside",
-                            "image": "preview/coming.svg"
-                        },
-                        {
-                            "name": "Outside",
-                            "image": "preview/coming.svg"
-                        },
-                        {
-                            "name": "Both sides",
-                            "image": "preview/coming.svg"
-                        }
-                    ]
-                },
-                {
-                    "name": "Alternate, multiple rows",
-                    "direction": [
-                        {
-                            "name": "Inside",
-                            "image": "preview/coming.svg"
-                        },
-                        {
-                            "name": "Outside",
-                            "image": "preview/coming.svg"
-                        },
-                        {
-                            "name": "Both sides",
-                            "image": "preview/coming.svg"
-                        }
-                    ]
-                },
-                {
-                    "name": "Aligned, single row",
-                    "direction": [
-                        {
-                            "name": "Inside",
-                            "image": "preview/coming.svg"
-                        },
-                        {
-                            "name": "Outside",
-                            "image": "preview/coming.svg"
-                        },
-                        {
-                            "name": "Both sides",
-                            "image": "preview/coming.svg"
-                        }
-                    ]
-                },
-                {
-                    "name": "Alternate, single row",
-                    "direction": [
-                        {
-                            "name": "Inside",
-                            "image": "preview/coming.svg"
-                        },
-                        {
-                            "name": "Outside",
-                            "image": "preview/coming.svg"
-                        },
-                        {
-                            "name": "Both sides",
-                            "image": "preview/coming.svg"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "QUAD",
-            "alignment": [
-                {
-                    "name": "Aligned, multiple rows",
-                    "direction": [
-                        {
-                            "name": "Inside",
-                            "image": "preview/coming.svg"
-                        },
-                        {
-                            "name": "Outside",
-                            "image": "preview/coming.svg"
-                        },
-                        {
-                            "name": "Both sides",
-                            "image": "preview/coming.svg"
-                        }
-                    ]
-                },
-                {
-                    "name": "Alternate, multiple rows",
-                    "direction": [
-                        {
-                            "name": "Inside",
-                            "image": "preview/coming.svg"
-                        },
-                        {
-                            "name": "Outside",
-                            "image": "preview/coming.svg"
-                        },
-                        {
-                            "name": "Both sides",
-                            "image": "preview/coming.svg"
-                        }
-                    ]
-                },
-                {
-                    "name": "Aligned, single row",
-                    "direction": [
-                        {
-                            "name": "Inside",
-                            "image": "preview/coming.svg"
-                        },
-                        {
-                            "name": "Outside",
-                            "image": "preview/coming.svg"
-                        },
-                        {
-                            "name": "Both sides",
-                            "image": "preview/coming.svg"
-                        }
-                    ]
-                },
-                {
-                    "name": "Alternate, single row",
-                    "direction": [
-                        {
-                            "name": "Inside",
-                            "image": "preview/coming.svg"
-                        },
-                        {
-                            "name": "Outside",
-                            "image": "preview/coming.svg"
-                        },
-                        {
-                            "name": "Both sides",
-                            "image": "preview/coming.svg"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "name": "BGA",
             "alignment": [
                 {
@@ -202,6 +56,79 @@
                         {
                             "name": "Vertical",
                             "image": "preview/vertical.svg"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "SOIC/QFN",
+            "alignment": [
+                {
+                    "name": "Linear Escape",
+                    "direction": [
+                        {
+                            "name": "Outside",
+                            "image": "preview/linear-escape.svg"
+                        },
+                        {
+                            "name": "Inside",
+                            "image": "preview/linear-escape.svg"
+                        },
+                        {
+                            "name": "Both sides",
+                            "image": "preview/linear-escape.svg"
+                        }
+                    ]
+                },
+                {
+                    "name": "Staggered Linear",
+                    "direction": [
+                        {
+                            "name": "Outside",
+                            "image": "preview/staggered-linear.svg"
+                        },
+                        {
+                            "name": "Inside",
+                            "image": "preview/staggered-linear.svg"
+                        },
+                        {
+                            "name": "Both sides",
+                            "image": "preview/staggered-linear.svg"
+                        }
+                    ]
+                },
+                {
+                    "name": "Fan Escape",
+                    "direction": [
+                        {
+                            "name": "Outside",
+                            "image": "preview/fan-escape.svg"
+                        },
+                        {
+                            "name": "Inside",
+                            "image": "preview/fan-escape.svg"
+                        },
+                        {
+                            "name": "Both sides",
+                            "image": "preview/fan-escape.svg"
+                        }
+                    ]
+                },
+                {
+                    "name": "Staggered Fan",
+                    "direction": [
+                        {
+                            "name": "Outside",
+                            "image": "preview/staggered-fan.svg"
+                        },
+                        {
+                            "name": "Inside",
+                            "image": "preview/staggered-fan.svg"
+                        },
+                        {
+                            "name": "Both sides",
+                            "image": "preview/staggered-fan.svg"
                         }
                     ]
                 }

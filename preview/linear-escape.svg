@@ -1,0 +1,42 @@
+<svg width="141" height="150" viewBox="0 0 141 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="5" y="13" width="20" height="4" fill="#C83434"/>
+<rect x="25" y="10" width="24" height="10" fill="#C83434"/>
+<rect x="25" y="30" width="24" height="10" fill="#C83434"/>
+<rect x="25" y="50" width="24" height="10" fill="#C83434"/>
+<rect x="25" y="70" width="24" height="10" fill="#C83434"/>
+<rect x="25" y="90" width="24" height="10" fill="#C83434"/>
+<rect x="25" y="110" width="24" height="10" fill="#C83434"/>
+<rect x="25" y="130" width="24" height="10" fill="#C83434"/>
+<rect x="117" y="10" width="24" height="10" fill="#C83434"/>
+<rect x="117" y="50" width="24" height="10" fill="#C83434"/>
+<rect x="117" y="90" width="24" height="10" fill="#C83434"/>
+<rect x="117" y="130" width="24" height="10" fill="#C83434"/>
+<rect x="117" y="30" width="24" height="10" fill="#C83434"/>
+<rect x="117" y="70" width="24" height="10" fill="#C83434"/>
+<rect x="117" y="110" width="24" height="10" fill="#C83434"/>
+<circle cx="5" cy="15" r="5" fill="#57ACDC"/>
+<circle cx="5" cy="15" r="3" fill="#496989"/>
+<rect x="5" y="33" width="20" height="4" fill="#C83434"/>
+<circle cx="5" cy="35" r="5" fill="#57ACDC"/>
+<circle cx="5" cy="35" r="3" fill="#496989"/>
+<rect x="5" y="53" width="20" height="4" fill="#C83434"/>
+<circle cx="5" cy="55" r="5" fill="#57ACDC"/>
+<circle cx="5" cy="55" r="3" fill="#496989"/>
+<rect x="5" y="73" width="20" height="4" fill="#C83434"/>
+<circle cx="5" cy="75" r="5" fill="#57ACDC"/>
+<circle cx="5" cy="75" r="3" fill="#496989"/>
+<rect x="5" y="93" width="20" height="4" fill="#C83434"/>
+<circle cx="5" cy="95" r="5" fill="#57ACDC"/>
+<circle cx="5" cy="95" r="3" fill="#496989"/>
+<rect x="5" y="113" width="20" height="4" fill="#C83434"/>
+<circle cx="5" cy="115" r="5" fill="#57ACDC"/>
+<circle cx="5" cy="115" r="3" fill="#496989"/>
+<rect x="5" y="133" width="20" height="4" fill="#C83434"/>
+<circle cx="5" cy="135" r="5" fill="#57ACDC"/>
+<circle cx="5" cy="135" r="3" fill="#496989"/>
+<rect x="53" width="4" height="150" fill="#F5B041"/>
+<rect x="109" width="4" height="150" fill="#F5B041"/>
+<rect x="53" y="4" width="4" height="60" transform="rotate(-90 53 4)" fill="#F5B041"/>
+<rect x="53" y="4" width="4" height="60" transform="rotate(-90 53 4)" fill="#F5B041"/>
+<rect x="53" y="150" width="4" height="60" transform="rotate(-90 53 150)" fill="#F5B041"/>
+</svg>

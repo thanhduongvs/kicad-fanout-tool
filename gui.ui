@@ -253,7 +253,7 @@
    <widget class="QComboBox" name="comboPackage">
     <property name="geometry">
      <rect>
-      <x>160</x>
+      <x>260</x>
       <y>510</y>
       <width>111</width>
       <height>26</height>
@@ -265,12 +265,12 @@
      <rect>
       <x>50</x>
       <y>520</y>
-      <width>81</width>
+      <width>201</width>
       <height>18</height>
      </rect>
     </property>
     <property name="text">
-     <string>Reference:</string>
+     <string>Placement of via fanout for:</string>
     </property>
    </widget>
    <widget class="QLabel" name="labelAlignment">
@@ -291,7 +291,7 @@
      <rect>
       <x>30</x>
       <y>610</y>
-      <width>161</width>
+      <width>211</width>
       <height>26</height>
      </rect>
     </property>
@@ -299,8 +299,8 @@
    <widget class="QLabel" name="labelDirection">
     <property name="geometry">
      <rect>
-      <x>220</x>
-      <y>580</y>
+      <x>270</x>
+      <y>570</y>
       <width>81</width>
       <height>18</height>
      </rect>
@@ -312,19 +312,9 @@
    <widget class="QComboBox" name="comboDirection">
     <property name="geometry">
      <rect>
-      <x>210</x>
+      <x>270</x>
       <y>610</y>
       <width>131</width>
-      <height>26</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="comboSpacing">
-    <property name="geometry">
-     <rect>
-      <x>370</x>
-      <y>610</y>
-      <width>111</width>
       <height>26</height>
      </rect>
     </property>
@@ -332,14 +322,24 @@
    <widget class="QLabel" name="labelSpacing">
     <property name="geometry">
      <rect>
-      <x>390</x>
+      <x>460</x>
       <y>570</y>
-      <width>81</width>
+      <width>111</width>
       <height>18</height>
      </rect>
     </property>
     <property name="text">
-     <string>Spacing:</string>
+     <string>Fanout length:</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="textLength">
+    <property name="geometry">
+     <rect>
+      <x>460</x>
+      <y>610</y>
+      <width>113</width>
+      <height>26</height>
+     </rect>
     </property>
    </widget>
   </widget>

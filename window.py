@@ -7,7 +7,7 @@ from version import version
 from kicad_pcb import KiCadPCB
 from utils import ViaData, TrackData, via_in_pad
 from package import get_packages
-from bga import BGA
+from fanout import Fanout
 import os
 
 IU_PER_MM = 1000000
@@ -127,11 +127,12 @@ class MainWindow(QMainWindow):
         if in_pad:
             via_in_pad(footprint, self.pcb.board, via)
         else:
+            package = self.ui.comboPackage.currentText()
             alignment = self.ui.comboAlignment.currentText()
             direction = self.ui.comboDirection.currentText()
             unused_pad = self.ui.checkViaInPad.isChecked()
-            bga = BGA(footprint, self.pcb.board,
-                 via, track, alignment, direction, unused_pad)
+            bga = Fanout(footprint, self.pcb.board,
+                 via, track, package, alignment, direction, unused_pad)
             bga.fanout()
 
     def on_package_changed(self):
@@ -150,9 +151,6 @@ class MainWindow(QMainWindow):
         self.ui.comboAlignment.clear()
         self.ui.comboDirection.clear()
         
-        if value == 'BGA staggered':
-            self.ui.comboAlignment.clear()
-            self.ui.comboAlignment.addItem("None")
         if value == 'BGA':
             self.ui.comboDirection.clear()
         self.ui.comboAlignment.addItems(alignments)
@@ -233,7 +231,7 @@ class MainWindow(QMainWindow):
         return True
 
     def set_package(self):
-        default = 2 #bga
+        default = 0 #bga
         packages = []
         alignments = []
         for package in self.packages:
