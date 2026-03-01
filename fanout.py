@@ -1,15 +1,7 @@
-from typing import Optional, Sequence
-from kipy import KiCad
-from kipy.board import Board, BoardLayer, BoardOriginType
-from kipy.board_types import FootprintInstance, Field
-from kipy.board_types import Field
-from kipy.board_types import Net
+from kipy.board import Board
+from kipy.board_types import FootprintInstance, Net
 from kipy.geometry import Vector2
-from collections import defaultdict
-from kipy.board_types import Track, Via, Pad, DrillProperties
-from kipy.proto.board.board_types_pb2 import ViaType, PadStackType, BoardLayer
-from kipy.util.units import from_mm
-from dataclasses import dataclass
+from kipy.board_types import Track, Via, Pad
 from typing import List, Union, Dict, Tuple
 from kipy.geometry import Angle
 from utils import ViaData, TrackData, add_via, add_track, get_pitch_and_stagger_info
@@ -18,7 +10,8 @@ import math
 class Fanout:
     def __init__(self, footprint: FootprintInstance, board: Board,
                  via: ViaData, track: TrackData, package: str,
-                 alignment: str, direction: str, unused_pad: bool):
+                 alignment: str, direction: str, unused_pad: bool,
+                 fanout_length: int, stagger_gap: int, via_pitch: int):
         self.board = board
         self.footprint = footprint
         self.track = track
@@ -26,8 +19,10 @@ class Fanout:
         self.package = package
         self.alignment = alignment
         self.direction = direction
-        self.x_dir = 1
-        self.y_dir = 1
+        self.unused_pad = unused_pad
+        self.fanout_length= fanout_length
+        self.stagger_gap = stagger_gap
+        self.via_pitch = via_pitch
         print(f"package: {package}")
         print(f"alignment: {alignment}")
         print(f"direction: {direction}")
@@ -552,8 +547,10 @@ class Fanout:
     def fanout_peripheral(self):
         """
         Hàm Fanout dành riêng cho IC viền (SOP, QFP, QFN).
-        Đã Fix Lỗi Đè Pad: Kéo dài đoạn Stub thoát chân (base_stub = pitch * 2.5) 
-        và bẻ góc so le để đảm bảo Track luôn cách xa Pad và các Track khác.
+        Hỗ trợ tùy chỉnh 3 thông số độc lập:
+        1. fanout_length: Khoảng cách từ Pad đến Via
+        2. stagger_gap: Khoảng cách giữa 2 hàng Via
+        3. via_pitch: Khoảng cách giữa 2 Via liên tiếp (áp dụng cho Fan)
         """
         items: List[Union[Via, Track]] = []
         angle_rad = self.footprint.orientation.to_radians()
@@ -562,7 +559,7 @@ class Fanout:
         
         px, py = self.get_peripheral_pitch()
         valid_pitches = [p for p in (px, py) if p > 0]
-        pitch = min(valid_pitches) if valid_pitches else 500000
+        ic_pitch = min(valid_pitches) if valid_pitches else 500000
         
         cx = clean_nm(self.footprint.position.x)
         cy = clean_nm(self.footprint.position.y)
@@ -615,8 +612,16 @@ class Fanout:
 
         spread_factor = 1.0 if ic_shape != '4-SIDED' else 0.25
 
-        # Tăng khoảng cách thoát Pad lên 2.5 lần pitch để vượt qua chiều dài Pad vật lý
-        base_stub = pitch * 2.5 
+        # --- LẤY 3 THÔNG SỐ TỪ NGƯỜI DÙNG ---
+        #base_stub = getattr(self, 'fanout_length', 2000000) 
+        #stagger_gap = getattr(self, 'stagger_gap', 1500000)
+        #custom_via_pitch = getattr(self, 'via_pitch', 0)
+        base_stub = self.fanout_length
+        stagger_gap = self.stagger_gap
+        custom_via_pitch = self.via_pitch
+        
+        # Nếu người dùng nhập via_pitch = 0 thì lấy theo pitch của IC
+        effective_via_pitch = custom_via_pitch if custom_via_pitch > 0 else ic_pitch
 
         # --- BƯỚC 2: TÍNH TOÁN 3 PHÂN ĐOẠN ---
         for edge, pad_list in edges.items():
@@ -630,28 +635,31 @@ class Fanout:
                 
             mid_idx = (len(pad_list) - 1) / 2.0
             
-            # TÌM X CỦA HÀNG VIA TRONG CÙNG ĐỂ GIÓNG THẲNG
+            # TÌM ĐIỂM BẺ GÓC XA NHẤT ĐỂ GIÓNG THẲNG HÀNG VIA
             max_p2_x = 0
             for i in range(len(pad_list)):
-                v_y = (i - mid_idx) * pitch * spread_factor if is_spreading else 0
+                # Trục Y sử dụng Via Pitch của người dùng nhập
+                v_y = (i - mid_idx) * effective_via_pitch * spread_factor if is_spreading else 0
                 
-                # So le điểm bẻ góc (Outer track đi thẳng dài hơn Inner track 1.5 pitch)
-                e_stub = (pitch * 1.5) if (is_multiple_rows and i % 2 != 0) else 0
+                # Trục X sử dụng Stagger Gap của người dùng nhập
+                e_stub = (stagger_gap * 0.75) if (is_multiple_rows and i % 2 != 0) else 0
                 p2_x = base_stub + e_stub + abs(v_y)
                 
                 if p2_x > max_p2_x: 
                     max_p2_x = p2_x
                 
-            inner_via_x = max_p2_x + pitch * 0.5
+            # Cộng thêm 0.5mm an toàn sau điểm bẻ góc xa nhất
+            inner_via_x = max_p2_x + 500000 
 
             for pad_index, (pad, lx_pad, ly_pad) in enumerate(pad_list):
                 
+                # 1. TRỤC TỎA NGANG (Y) dùng effective_via_pitch
                 via_local_y = 0
                 if is_spreading:
-                    via_local_y = (pad_index - mid_idx) * pitch * spread_factor
+                    via_local_y = (pad_index - mid_idx) * effective_via_pitch * spread_factor
                 
-                # --- PHÂN ĐOẠN 1: Stub thoát Pad (Đã kéo dài và xếp so le) ---
-                extra_stub = (pitch * 1.5) if (is_multiple_rows and pad_index % 2 != 0) else 0
+                # --- PHÂN ĐOẠN 1: Stub thoát Pad ---
+                extra_stub = (stagger_gap * 0.75) if (is_multiple_rows and pad_index % 2 != 0) else 0
                 p1_local_x = base_stub + extra_stub
                 p1_local_y = 0
                 
@@ -662,7 +670,8 @@ class Fanout:
                 # --- PHÂN ĐOẠN 3: Chạy ngang đến Via ---
                 via_local_x = inner_via_x
                 if is_multiple_rows and pad_index % 2 != 0:
-                    via_local_x += pitch * 2.0 
+                    # Đẩy hàng Via thứ 2 ra xa bằng thông số Stagger Gap
+                    via_local_x += stagger_gap 
                     
                 p3_local_x = via_local_x
                 p3_local_y = via_local_y
@@ -680,21 +689,13 @@ class Fanout:
                 # --- GẮN VÀO HỆ LOCAL ---
                 lx1, ly1, lx2, ly2, lx3, ly3 = 0,0,0,0,0,0
                 if edge == 'RIGHT':
-                    lx1, ly1 = p1_local_x, p1_local_y
-                    lx2, ly2 = p2_local_x, p2_local_y
-                    lx3, ly3 = p3_local_x, p3_local_y
+                    lx1, ly1 = p1_local_x, p1_local_y; lx2, ly2 = p2_local_x, p2_local_y; lx3, ly3 = p3_local_x, p3_local_y
                 elif edge == 'LEFT':
-                    lx1, ly1 = -p1_local_x, p1_local_y
-                    lx2, ly2 = -p2_local_x, p2_local_y
-                    lx3, ly3 = -p3_local_x, p3_local_y
+                    lx1, ly1 = -p1_local_x, p1_local_y; lx2, ly2 = -p2_local_x, p2_local_y; lx3, ly3 = -p3_local_x, p3_local_y
                 elif edge == 'BOTTOM':
-                    lx1, ly1 = p1_local_y, p1_local_x
-                    lx2, ly2 = p2_local_y, p2_local_x
-                    lx3, ly3 = p3_local_y, p3_local_x
+                    lx1, ly1 = p1_local_y, p1_local_x; lx2, ly2 = p2_local_y, p2_local_x; lx3, ly3 = p3_local_y, p3_local_x
                 elif edge == 'TOP':
-                    lx1, ly1 = p1_local_y, -p1_local_x
-                    lx2, ly2 = p2_local_y, -p2_local_x
-                    lx3, ly3 = p3_local_y, -p3_local_x
+                    lx1, ly1 = p1_local_y, -p1_local_x; lx2, ly2 = p2_local_y, -p2_local_x; lx3, ly3 = p3_local_y, -p3_local_x
 
                 # --- XOAY RA GLOBAL ---
                 def to_global(lx, ly):
@@ -711,14 +712,12 @@ class Fanout:
                 v_p3 = Vector2.from_xy(g_p3_x, g_p3_y)
 
                 # --- VẼ LÊN BOARD ---
-                # Track 1
                 track1 = TrackData(
                     width=self.track.width, layer=self.track.layer,
                     net=pad.net, start=pad.position, end=v_p1
                 )
                 items.append(add_track(track1))
 
-                # Track 2
                 if is_spreading and via_local_y != 0:
                     track2 = TrackData(
                         width=self.track.width, layer=self.track.layer,
@@ -726,7 +725,6 @@ class Fanout:
                     )
                     items.append(add_track(track2))
 
-                # Track 3
                 if abs(p3_local_x) > abs(p2_local_x):
                     track3 = TrackData(
                         width=self.track.width, layer=self.track.layer,
@@ -734,7 +732,6 @@ class Fanout:
                     )
                     items.append(add_track(track3))
 
-                # Via
                 via = ViaData(
                     via_type=self.via.via_type, via_diameter=self.via.via_diameter,
                     via_hole=self.via.via_hole, start_layer=self.via.start_layer,

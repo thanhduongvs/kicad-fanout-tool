@@ -23,6 +23,9 @@ class MainWindow(QMainWindow):
         self.trackWidth: int = 0
         self.viaDiameter: int = 0
         self.viaHole: int = 0
+        self.fanout_length: int = 0
+        self.stagger_gap: int = 0
+        self.via_pitch: int = 0
         self.packages = get_packages()
         self.unit: int = IU_PER_MILS
         self.pcb = KiCadPCB()
@@ -30,9 +33,12 @@ class MainWindow(QMainWindow):
         self.ui.textTrackWidth.setText("8")
         self.ui.textViaDiameter.setText("10")
         self.ui.textViaHole.setText("5")
+        self.ui.textFanoutLength.setText("20")
+        self.ui.textStaggerGap.setText("40")
+        self.ui.textViaPitch.setText("20")
         self.ui.comboUnit.addItems(["mils", "mm"])
         self.ui.comboViaType.addItems(["Through", "Micro", "Blind/Buried"])
-
+        
         self.set_package()
         self.svg_widget = QSvgWidget("preview/quadrant.svg")
 
@@ -51,8 +57,11 @@ class MainWindow(QMainWindow):
         self.ui.comboPackage.currentIndexChanged.connect(self.on_package_changed)
         self.ui.comboAlignment.currentIndexChanged.connect(self.on_alignment_changed)
         self.ui.comboDirection.currentIndexChanged.connect(self.on_direction_changed)
+        self.ui.buttonClose.clicked.connect(self.button_close_clicked)
+        self.ui.buttonConnect.clicked.connect(self.button_connect_clicked)
+        self.ui.buttonUndo.clicked.connect(self.button_undo_clicked)
         self.ui.buttonFanout.clicked.connect(self.button_fanout_clicked)
-    
+
     def load_initial_data(self):
         connected, status = self.pcb.connect_kicad()
         if connected:
@@ -88,6 +97,15 @@ class MainWindow(QMainWindow):
             self.ui.comboStartLayer.setEnabled(True)
             self.ui.comboEndLayer.setEnabled(True)
 
+    def button_close_clicked(self):
+        self.close()
+
+    def button_connect_clicked(self):
+        self.pcb.connect_kicad()
+
+    def button_undo_clicked(self):
+        pass
+    
     def button_fanout_clicked(self):
         connected, status = self.pcb.connect_kicad()
         if not connected:
@@ -131,8 +149,9 @@ class MainWindow(QMainWindow):
             alignment = self.ui.comboAlignment.currentText()
             direction = self.ui.comboDirection.currentText()
             unused_pad = self.ui.checkViaInPad.isChecked()
-            bga = Fanout(footprint, self.pcb.board,
-                 via, track, package, alignment, direction, unused_pad)
+            bga = Fanout(footprint, self.pcb.board, via, track, 
+                         package, alignment, direction, unused_pad,
+                         self.fanout_length, self.stagger_gap, self.via_pitch)
             bga.fanout()
 
     def on_package_changed(self):
@@ -151,8 +170,8 @@ class MainWindow(QMainWindow):
         self.ui.comboAlignment.clear()
         self.ui.comboDirection.clear()
         
-        if value == 'BGA':
-            self.ui.comboDirection.clear()
+        #if value == 'BGA':
+        self.ui.comboDirection.clear()
         self.ui.comboAlignment.addItems(alignments)
         self.ui.comboDirection.addItems(directions)
         self.ui.comboAlignment.blockSignals(False)
@@ -203,14 +222,33 @@ class MainWindow(QMainWindow):
         if hole == None:
             QMessageBox.information(self, "Error", "Error: Invalid Via Hole")
             return
+        fanout_length = parse_float(self.ui.textFanoutLength.text())
+        if fanout_length == None:
+            QMessageBox.information(self, "Error", "Error: Invalid Fanout Length")
+            return
+        stagger_gap = parse_float(self.ui.textStaggerGap.text())
+        if stagger_gap == None:
+            QMessageBox.information(self, "Error", "Error: Invalid Stagger Gap")
+            return
+        via_pitch = parse_float(self.ui.textViaPitch.text())
+        if via_pitch == None:
+            QMessageBox.information(self, "Error", "Error: Invalid Via Pitch")
+            return
+
         if uint == "mm":
             self.ui.textTrackWidth.setText(f"{width*IU_PER_MILS/IU_PER_MM}")
             self.ui.textViaDiameter.setText(f"{diameter*IU_PER_MILS/IU_PER_MM}")
             self.ui.textViaHole.setText(f"{hole*IU_PER_MILS/IU_PER_MM}")
+            self.ui.textFanoutLength.setText(f"{fanout_length*IU_PER_MILS/IU_PER_MM}")
+            self.ui.textStaggerGap.setText(f"{stagger_gap*IU_PER_MILS/IU_PER_MM}")
+            self.ui.textViaPitch.setText(f"{via_pitch*IU_PER_MILS/IU_PER_MM}")
         else:
             self.ui.textTrackWidth.setText(f"{width*IU_PER_MM/IU_PER_MILS}")
             self.ui.textViaDiameter.setText(f"{diameter*IU_PER_MM/IU_PER_MILS}")
             self.ui.textViaHole.setText(f"{hole*IU_PER_MM/IU_PER_MILS}")
+            self.ui.textFanoutLength.setText(f"{fanout_length*IU_PER_MM/IU_PER_MILS}")
+            self.ui.textStaggerGap.setText(f"{stagger_gap*IU_PER_MM/IU_PER_MILS}")
+            self.ui.textViaPitch.setText(f"{via_pitch*IU_PER_MM/IU_PER_MILS}")
 
     def parse_input(self) -> bool:
         width = parse_float(self.ui.textTrackWidth.text())
@@ -225,9 +263,24 @@ class MainWindow(QMainWindow):
         if hole == None:
             QMessageBox.information(self, "Error", "Error: Invalid Via Hole")
             return False
+        fanout_length = parse_float(self.ui.textFanoutLength.text())
+        if fanout_length == None:
+            QMessageBox.information(self, "Error", "Error: Invalid Fanout Length")
+            return
+        stagger_gap = parse_float(self.ui.textStaggerGap.text())
+        if stagger_gap == None:
+            QMessageBox.information(self, "Error", "Error: Invalid Stagger Gap")
+            return
+        via_pitch = parse_float(self.ui.textViaPitch.text())
+        if via_pitch == None:
+            QMessageBox.information(self, "Error", "Error: Invalid Via Pitch")
+            return
         self.trackWidth = int(self.unit*width)
         self.viaDiameter = int(self.unit*diameter)
         self.viaHole = int(self.unit*hole)
+        self.fanout_length = int(self.unit*fanout_length)
+        self.stagger_gap = int(self.unit*stagger_gap)
+        self.via_pitch = int(self.unit*via_pitch)
         return True
 
     def set_package(self):

@@ -1,28 +1,14 @@
 import re
-import csv
-import os
-import sys
-from typing import Optional, Sequence
 from kipy import KiCad
-from kipy.board import Board, BoardLayer, BoardOriginType
-from kipy.board_types import FootprintInstance, Field
-from kipy.board_types import Field
-from kipy.geometry import Vector2
-from kipy.proto.board.board_types_pb2 import FootprintMountingStyle
-from collections import defaultdict
-from kipy.board_types import Track, Via, PadStack, DrillProperties
-from kipy.proto.board.board_types_pb2 import ViaType, PadStackType, BoardLayer
-from kipy.geometry import Angle, Vector2
-from kipy.util.units import from_mm
-
-import re
-from typing import Optional, Sequence, List, Tuple
+from kipy.board import Board, BoardLayer
+from kipy.board_types import FootprintInstance
+from kipy.proto.board.board_types_pb2 import BoardLayer
+from typing import Optional, List, Tuple
+from dataclasses import dataclass
 
 def natural_sort_key(footprint: FootprintInstance):
     text = footprint.reference_field.text.value
     return [int(c) if c.isdigit() else c.lower() for c in re.split(r'(\d+)', text)]
-
-from dataclasses import dataclass
 
 @dataclass
 class LayerMap:
@@ -52,7 +38,7 @@ class KiCadPCB:
             all_footprints = self.board.get_footprints()
             for fp in all_footprints:
                 if hasattr(fp, 'definition') and fp.definition is not None:
-                    if len(fp.definition.pads) > 8:
+                    if len(fp.definition.pads) > 5:
                         self.footprints.append(fp)
             
             self.footprints.sort(key=natural_sort_key)

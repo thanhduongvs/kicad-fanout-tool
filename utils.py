@@ -1,22 +1,10 @@
-import re
-import csv
-import os
-import sys
-from typing import Optional, Sequence
-from kipy import KiCad
-from kipy.board import Board, BoardLayer, BoardOriginType
-from kipy.board_types import FootprintInstance, Field
-from kipy.board_types import Field
-from kipy.board_types import Net
+from kipy.board import Board
+from kipy.board_types import FootprintInstance, Net, Track, Via, PadStack, DrillProperties
 from kipy.geometry import Vector2
-from kipy.proto.board.board_types_pb2 import FootprintMountingStyle
 from collections import defaultdict
-from kipy.board_types import Track, Via, PadStack, DrillProperties
-from kipy.proto.board.board_types_pb2 import ViaType, PadStackType, BoardLayer
-from kipy.util.units import from_mm
+from kipy.proto.board.board_types_pb2 import ViaType, PadStackType
 from dataclasses import dataclass
-import re
-from typing import Optional, Sequence, List, Tuple, Union
+from typing import List
 from kipy.geometry import Angle
 
 @dataclass
@@ -79,8 +67,6 @@ def via_in_pad(footprint: FootprintInstance, board: Board, data: ViaData):
         items.append(add_via(data))
     board.create_items(items)
     board.add_to_selection(items)
-
-
 
 MIN_PITCH_NM = 50000 # 0.05mm
 

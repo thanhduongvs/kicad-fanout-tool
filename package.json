@@ -133,6 +133,45 @@
                     ]
                 }
             ]
+        },
+        {
+            "name": "Connector/FPC",
+            "alignment": [
+                {
+                    "name": "Alternating Sides",
+                    "direction": [
+                        {
+                            "name": "Left/Right",
+                            "image": "preview/coming.svg"
+                        },
+                        {
+                            "name": "Top/Bottom",
+                            "image": "preview/coming.svg"
+                        }
+                    ]
+                },
+                {
+                    "name": "Staggered One Side",
+                    "direction": [
+                        {
+                            "name": "Left",
+                            "image": "preview/coming.svg"
+                        },
+                        {
+                            "name": "Right",
+                            "image": "preview/coming.svg"
+                        },
+                        {
+                            "name": "Top",
+                            "image": "preview/coming.svg"
+                        },
+                        {
+                            "name": "Bottom",
+                            "image": "preview/coming.svg"
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }
