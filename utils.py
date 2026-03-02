@@ -61,36 +61,36 @@ MIN_PITCH_NM = 50000 # 0.05mm
 
 def calculate_group_pitch(pads: Sequence[Pad], axis='x'):
     """
-    Tính Pitch theo phương pháp Gom nhóm (Exact Match).
-    Tốc độ O(N) nhờ dùng Dictionary Hash.
+    Calculate Pitch using the Grouping method (Exact Match).
+    O(N) time complexity by using a Hash Dictionary.
     """
     groups = defaultdict(list)
     
     for pad in pads:
-        # Lấy tọa độ nguyên bản (int/nm)
+        # Get original coordinates (int/nm)
         p_x = pad.position.x
         p_y = pad.position.y
         
         if axis == 'x':
-            # Tính Pitch X -> Gom theo Y
-            # Vì không dùng Tolerance, ta dùng p_y làm key trực tiếp
+            # Calculate Pitch X -> Group by Y
+            # Since no tolerance is used, use p_y directly as the key
             groups[p_y].append(p_x)
         else:
-            # Tính Pitch Y -> Gom theo X
+            # Calculate Pitch Y -> Group by X
             groups[p_x].append(p_y)
 
     all_deltas = []
     
-    # Duyệt qua từng nhóm hàng/cột
+    # Iterate through each row/column group
     for coords in groups.values():
         if len(coords) < 2: continue
         
-        # Sắp xếp để tính khoảng cách liền kề
+        # Sort to calculate adjacent distances
         coords.sort()
         
         for i in range(len(coords) - 1):
             delta = coords[i+1] - coords[i]
-            # Lọc nhiễu (nếu 2 pad trùng vị trí hoàn toàn delta=0)
+            # Filter noise (if 2 pads overlap perfectly, delta=0)
             if delta > MIN_PITCH_NM: 
                 all_deltas.append(delta)
     
@@ -98,15 +98,15 @@ def calculate_group_pitch(pads: Sequence[Pad], axis='x'):
 
 def calculate_projected_pitch(pads: Sequence[Pad], axis='x'):
     """
-    Tính Pitch theo phương pháp Chiếu (Exact Match).
+    Calculate Pitch using the Projection method (Exact Match).
     """
-    # Lấy danh sách tọa độ trên trục cần tính
+    # Get a list of coordinates on the required axis
     if axis == 'x':
         coords = [p.position.x for p in pads]
     else:
         coords = [p.position.y for p in pads]
     
-    # Sắp xếp
+    # Sort
     coords.sort()
     
     unique_deltas = []
@@ -115,9 +115,9 @@ def calculate_projected_pitch(pads: Sequence[Pad], axis='x'):
     last_val = coords[0]
     for val in coords[1:]:
         diff = val - last_val
-        # Chỉ lấy nếu khác nhau (Diff > 0 và > Min Pitch)
-        # Vì bỏ Tolerance, chỉ cần diff > 0 là coi như khác nhau. 
-        # Nhưng để an toàn với pad trùng, ta dùng MIN_PITCH_NM.
+        # Only accept if different (Diff > 0 and > Min Pitch)
+        # Since tolerance is removed, diff > 0 is considered different. 
+        # However, to be safe with overlapping pads, use MIN_PITCH_NM.
         if diff > MIN_PITCH_NM:
             unique_deltas.append(diff)
             last_val = val
@@ -125,15 +125,15 @@ def calculate_projected_pitch(pads: Sequence[Pad], axis='x'):
     return min(unique_deltas) if unique_deltas else 0
 
 def round_pitch(value_nm):
-    # Làm tròn đến hàng nghìn gần nhất (1000nm = 1um)
-    # Ví dụ: 799999 -> 800000
+    # Round to the nearest thousand (1000nm = 1um)
+    # Example: 799999 -> 800000
     return int(round(value_nm / 1000.0) * 1000)
 
 def get_pitch_and_stagger_info(footprint: FootprintInstance):
-    # Lưu góc cũ
+    # Save the original angle
     original_angle = footprint.orientation.degrees
     
-    # Xoay về 0 (để lấy definition pads đúng hướng)
+    # Rotate to 0 (to get definition pads in the correct orientation)
     if original_angle != 0.0:
         footprint.orientation = Angle.from_degrees(0.0)
     
@@ -141,14 +141,14 @@ def get_pitch_and_stagger_info(footprint: FootprintInstance):
         pads = footprint.definition.pads
         if not pads: return 0, 0, False
         
-        # 1. Tính Pitch
+        # 1. Calculate Pitch
         real_pitch_x = calculate_group_pitch(pads, axis='x')
         real_pitch_y = calculate_group_pitch(pads, axis='y')
         
         proj_pitch_x = calculate_projected_pitch(pads, axis='x')
         proj_pitch_y = calculate_projected_pitch(pads, axis='y')
 
-        # 2. So le Check
+        # 2. Stagger Check
         staggered_x = False
         staggered_y = False
 
@@ -161,6 +161,6 @@ def get_pitch_and_stagger_info(footprint: FootprintInstance):
         return real_pitch_x, y, (staggered_x or staggered_y)
 
     finally:
-        # Khôi phục góc cũ
+        # Restore the original angle
         if original_angle != 0.0:
             footprint.orientation = Angle.from_degrees(original_angle)

@@ -32,7 +32,7 @@ class MainWindow(QMainWindow):
         self.ui.textTrackWidth.setText("8")
         self.ui.textViaDiameter.setText("10")
         self.ui.textViaHole.setText("5")
-        self.ui.textFanoutLength.setText("20")
+        self.ui.textFanoutLength.setText("40")
         self.ui.textStaggerGap.setText("40")
         self.ui.textViaPitch.setText("20")
         self.ui.comboUnit.addItems(["mils", "mm"])
@@ -161,7 +161,7 @@ class MainWindow(QMainWindow):
         package = self.ui.comboPackage.currentText()
         alignment = self.ui.comboAlignment.currentText()
         direction = self.ui.comboDirection.currentText()
-        unused_pad = self.ui.checkViaInPad.isChecked()
+        unused_pad = self.ui.checkSkipPad.isChecked()
 
         self.fanout = Fanout(footprint, self.pcb.board, via, track, 
                         package, alignment, direction, in_pad, unused_pad,
@@ -209,7 +209,6 @@ class MainWindow(QMainWindow):
         self.ui.comboDirection.blockSignals(True)
         x = self.ui.comboPackage.currentIndex()
         y = self.ui.comboAlignment.currentIndex()
-        value = self.ui.comboAlignment.currentText()
         directions = []
         direcs = self.packages[x].alignments[y].directions
         for direc in direcs:
@@ -241,7 +240,6 @@ class MainWindow(QMainWindow):
                 self.ui.textStaggerGap.setDisabled(False)
                 self.ui.textViaPitch.setDisabled(False)
 
-
     def on_direction_changed(self):
         x = self.ui.comboPackage.currentIndex()
         y = self.ui.comboAlignment.currentIndex()
@@ -254,7 +252,7 @@ class MainWindow(QMainWindow):
         if os.path.exists(abs_path):
             self.svg_widget.load(abs_path)
         else:
-            print(f"Chưa có ảnh preview cho {abs_path}")
+            print(f"No preview image found for {abs_path}")
 
     def change_unit(self, uint):
         width = parse_float(self.ui.textTrackWidth.text())
@@ -336,12 +334,12 @@ class MainWindow(QMainWindow):
         alignments = []
         for package in self.packages:
             packages.append(package.name)
-            for alig in package.alignments:
-                alignments.append(alig.name)
+            if package.name == 'BGA':
+                for alig in package.alignments:
+                    alignments.append(alig.name)
         self.ui.comboPackage.addItems(packages)
         self.ui.comboAlignment.addItems(alignments)
         self.ui.comboPackage.setCurrentIndex(default)
-
 
 def parse_float(text: str) -> float | None:
     try:
