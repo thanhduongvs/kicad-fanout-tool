@@ -1,11 +1,10 @@
-from kipy.board import Board
 from kipy.board_types import FootprintInstance, Net, Pad, Track, Via, PadStack, DrillProperties
 from kipy.geometry import Vector2
 from collections import defaultdict
 from kipy.proto.board.board_types_pb2 import ViaType, PadStackType
 from dataclasses import dataclass
 from kipy.geometry import Angle
-from typing import List, Sequence
+from typing import Sequence
 
 @dataclass
 class TrackData:
@@ -57,16 +56,6 @@ def add_track(data: TrackData) -> Track:
     track.end = data.end # Vector2.from_xy(0, 0)
     track.width = data.width
     return track
-
-def via_in_pad(footprint: FootprintInstance, board: Board, data: ViaData):
-    items: List[Via] = []
-    pads = footprint.definition.pads
-    for pad in pads:
-        data.position = pad.position
-        data.net = pad.net
-        items.append(add_via(data))
-    board.create_items(items)
-    board.add_to_selection(items)
 
 MIN_PITCH_NM = 50000 # 0.05mm
 

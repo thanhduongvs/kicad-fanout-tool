@@ -1,11 +1,10 @@
-from PySide6.QtWidgets import QMainWindow, QMessageBox, QHeaderView, QTableView
-from PySide6.QtWidgets import QVBoxLayout
+from PySide6.QtWidgets import QMainWindow, QMessageBox, QVBoxLayout
 from PySide6.QtSvgWidgets import QSvgWidget
 from PySide6.QtCore import QTimer
 from gui import Ui_MainWindow
 from version import version
 from kicad_pcb import KiCadPCB
-from utils import ViaData, TrackData, via_in_pad
+from utils import ViaData, TrackData
 from package import get_packages
 from fanout import Fanout
 import os
@@ -49,14 +48,17 @@ class MainWindow(QMainWindow):
             track=None, 
             package="", 
             alignment="", 
-            direction="", 
+            direction="",
+            in_pad=False,
             unused_pad=False,
             fanout_length=0, 
             stagger_gap=0, 
             via_pitch=0
         )
         self.set_package()
-        self.svg_widget = QSvgWidget("preview/quadrant.svg")
+        base_dir = os.path.dirname(__file__)
+        init_img = os.path.join(base_dir, "preview", "quadrant.svg")
+        self.svg_widget = QSvgWidget(init_img)
 
         if self.ui.groupImagePreview.layout() is None:
             layout = QVBoxLayout(self.ui.groupImagePreview)
@@ -116,9 +118,6 @@ class MainWindow(QMainWindow):
     def button_close_clicked(self):
         self.close()
 
-    #def button_connect_clicked(self):
-        #self.pcb.connect_kicad()
-
     def button_undo_clicked(self):
         self.fanout.remove_items()
     
@@ -139,6 +138,7 @@ class MainWindow(QMainWindow):
         end = self.ui.comboEndLayer.currentIndex()
         start_layer = self.pcb.stackup[start].id
         end_layer = self.pcb.stackup[end].id
+        
         via = ViaData(
             via_type = via_type,
             via_diameter = self.viaDiameter,
@@ -158,18 +158,15 @@ class MainWindow(QMainWindow):
         )
 
         in_pad = self.ui.checkViaInPad.isChecked()
-        if in_pad:
-            via_in_pad(footprint, self.pcb.board, via)
-        else:
-            package = self.ui.comboPackage.currentText()
-            alignment = self.ui.comboAlignment.currentText()
-            direction = self.ui.comboDirection.currentText()
-            unused_pad = self.ui.checkViaInPad.isChecked()
+        package = self.ui.comboPackage.currentText()
+        alignment = self.ui.comboAlignment.currentText()
+        direction = self.ui.comboDirection.currentText()
+        unused_pad = self.ui.checkViaInPad.isChecked()
 
-            self.fanout = Fanout(footprint, self.pcb.board, via, track, 
-                         package, alignment, direction, unused_pad,
-                         self.fanout_length, self.stagger_gap, self.via_pitch)
-            self.fanout.fanout()
+        self.fanout = Fanout(footprint, self.pcb.board, via, track, 
+                        package, alignment, direction, in_pad, unused_pad,
+                        self.fanout_length, self.stagger_gap, self.via_pitch)
+        self.fanout.fanout()
 
     def on_package_changed(self):
         index = self.ui.comboPackage.currentIndex()
@@ -199,6 +196,10 @@ class MainWindow(QMainWindow):
             self.ui.textFanoutLength.setDisabled(True)
             self.ui.textStaggerGap.setDisabled(True)
             self.ui.textViaPitch.setDisabled(True)
+        if value == 'SOIC/QFN':
+            self.ui.textFanoutLength.setDisabled(False)
+            self.ui.textStaggerGap.setDisabled(True)
+            self.ui.textViaPitch.setDisabled(True)
         else:
             self.ui.textFanoutLength.setDisabled(False)
             self.ui.textStaggerGap.setDisabled(False)
@@ -215,11 +216,31 @@ class MainWindow(QMainWindow):
             directions.append(direc.name)
         image = direcs[0].image
         self.ui.comboDirection.clear()
-        if value == 'Quadrant':
-            directions.clear()
         self.ui.comboDirection.addItems(directions)
         self.update_image(image)
         self.ui.comboDirection.blockSignals(False)
+
+        package = self.ui.comboPackage.currentText()
+        alignment = self.ui.comboAlignment.currentText()
+
+        if package == 'SOIC/QFN':
+            if alignment == 'Linear Escape':
+                self.ui.textFanoutLength.setDisabled(False)
+                self.ui.textStaggerGap.setDisabled(True)
+                self.ui.textViaPitch.setDisabled(True)
+            elif alignment == 'Staggered Linear':
+                self.ui.textFanoutLength.setDisabled(False)
+                self.ui.textStaggerGap.setDisabled(False)
+                self.ui.textViaPitch.setDisabled(True)
+            elif alignment == 'Fan Escape':
+                self.ui.textFanoutLength.setDisabled(False)
+                self.ui.textStaggerGap.setDisabled(True)
+                self.ui.textViaPitch.setDisabled(False)
+            elif alignment == 'Staggered Fan':
+                self.ui.textFanoutLength.setDisabled(False)
+                self.ui.textStaggerGap.setDisabled(False)
+                self.ui.textViaPitch.setDisabled(False)
+
 
     def on_direction_changed(self):
         x = self.ui.comboPackage.currentIndex()
@@ -229,10 +250,11 @@ class MainWindow(QMainWindow):
         self.update_image(image)
     
     def update_image(self, path):
-        if os.path.exists(path):
-            self.svg_widget.load(path)
+        abs_path = os.path.join(os.path.dirname(__file__), path)
+        if os.path.exists(abs_path):
+            self.svg_widget.load(abs_path)
         else:
-            print(f"Chưa có ảnh preview cho {path}")
+            print(f"Chưa có ảnh preview cho {abs_path}")
 
     def change_unit(self, uint):
         width = parse_float(self.ui.textTrackWidth.text())
@@ -291,15 +313,15 @@ class MainWindow(QMainWindow):
         fanout_length = parse_float(self.ui.textFanoutLength.text())
         if fanout_length == None:
             QMessageBox.information(self, "Error", "Error: Invalid Fanout Length")
-            return
+            return False
         stagger_gap = parse_float(self.ui.textStaggerGap.text())
         if stagger_gap == None:
             QMessageBox.information(self, "Error", "Error: Invalid Stagger Gap")
-            return
+            return False
         via_pitch = parse_float(self.ui.textViaPitch.text())
         if via_pitch == None:
             QMessageBox.information(self, "Error", "Error: Invalid Via Pitch")
-            return
+            return False
         self.trackWidth = int(self.unit*width)
         self.viaDiameter = int(self.unit*diameter)
         self.viaHole = int(self.unit*hole)
@@ -314,14 +336,11 @@ class MainWindow(QMainWindow):
         alignments = []
         for package in self.packages:
             packages.append(package.name)
-            if package.name == 'BGA':
-                for alig in package.alignments:
-                    alignments.append(alig.name)
+            for alig in package.alignments:
+                alignments.append(alig.name)
         self.ui.comboPackage.addItems(packages)
         self.ui.comboAlignment.addItems(alignments)
         self.ui.comboPackage.setCurrentIndex(default)
-        #image = self.packages[default].alignments[0].directions[0].image
-        #self.view.SetImagePreview(image)
 
 
 def parse_float(text: str) -> float | None:
