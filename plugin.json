@@ -2,7 +2,7 @@
     "$schema": "https://go.kicad.org/api/schemas/v1",
     "identifier": "vn.thanhduongvs.fanout-tool",
     "name": "Fanout Tool",
-    "description": "Generate vector-based, artistic QR codes for PCBs. Features include liquid/rounded styles, custom shapes (Heart, Circle), finder patterns (Diamond, Superellipse), and automatic logo vectorization.",
+    "description": "Automate escape routing (fanout) for dense IC packages like QFN, QFP, and BGA",
     "runtime": {
         "type": "python",
         "min_version": "3.10"
@@ -10,8 +10,8 @@
     "actions": [
         {
             "identifier": "fanout-tool",
-            "name": "Artistic QR Code Generator",
-            "description": "Launch the Artistic QR Code Generator tool",
+            "name": "Fanout Tool",
+            "description": "Automate escape routing (fanout) for dense IC packages like QFN, QFP, and BGA",
             "show-button": true,
             "scopes": [
                 "pcb"

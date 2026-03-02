@@ -1,11 +1,11 @@
 from kipy.board import Board
-from kipy.board_types import FootprintInstance, Net, Track, Via, PadStack, DrillProperties
+from kipy.board_types import FootprintInstance, Net, Pad, Track, Via, PadStack, DrillProperties
 from kipy.geometry import Vector2
 from collections import defaultdict
 from kipy.proto.board.board_types_pb2 import ViaType, PadStackType
 from dataclasses import dataclass
-from typing import List
 from kipy.geometry import Angle
+from typing import List, Sequence
 
 @dataclass
 class TrackData:
@@ -70,7 +70,7 @@ def via_in_pad(footprint: FootprintInstance, board: Board, data: ViaData):
 
 MIN_PITCH_NM = 50000 # 0.05mm
 
-def calculate_group_pitch(pads, axis='x'):
+def calculate_group_pitch(pads: Sequence[Pad], axis='x'):
     """
     Tính Pitch theo phương pháp Gom nhóm (Exact Match).
     Tốc độ O(N) nhờ dùng Dictionary Hash.
@@ -107,7 +107,7 @@ def calculate_group_pitch(pads, axis='x'):
     
     return min(all_deltas) if all_deltas else 0
 
-def calculate_projected_pitch(pads, axis='x'):
+def calculate_projected_pitch(pads: Sequence[Pad], axis='x'):
     """
     Tính Pitch theo phương pháp Chiếu (Exact Match).
     """

@@ -38,7 +38,23 @@ class MainWindow(QMainWindow):
         self.ui.textViaPitch.setText("20")
         self.ui.comboUnit.addItems(["mils", "mm"])
         self.ui.comboViaType.addItems(["Through", "Micro", "Blind/Buried"])
+        self.ui.textFanoutLength.setDisabled(True)
+        self.ui.textStaggerGap.setDisabled(True)
+        self.ui.textViaPitch.setDisabled(True)
         
+        self.fanout = Fanout(
+            footprint=None, 
+            board=None, 
+            via=None, 
+            track=None, 
+            package="", 
+            alignment="", 
+            direction="", 
+            unused_pad=False,
+            fanout_length=0, 
+            stagger_gap=0, 
+            via_pitch=0
+        )
         self.set_package()
         self.svg_widget = QSvgWidget("preview/quadrant.svg")
 
@@ -58,7 +74,7 @@ class MainWindow(QMainWindow):
         self.ui.comboAlignment.currentIndexChanged.connect(self.on_alignment_changed)
         self.ui.comboDirection.currentIndexChanged.connect(self.on_direction_changed)
         self.ui.buttonClose.clicked.connect(self.button_close_clicked)
-        self.ui.buttonConnect.clicked.connect(self.button_connect_clicked)
+        self.ui.buttonConnect.clicked.connect(self.load_initial_data)
         self.ui.buttonUndo.clicked.connect(self.button_undo_clicked)
         self.ui.buttonFanout.clicked.connect(self.button_fanout_clicked)
 
@@ -100,11 +116,11 @@ class MainWindow(QMainWindow):
     def button_close_clicked(self):
         self.close()
 
-    def button_connect_clicked(self):
-        self.pcb.connect_kicad()
+    #def button_connect_clicked(self):
+        #self.pcb.connect_kicad()
 
     def button_undo_clicked(self):
-        pass
+        self.fanout.remove_items()
     
     def button_fanout_clicked(self):
         connected, status = self.pcb.connect_kicad()
@@ -149,10 +165,11 @@ class MainWindow(QMainWindow):
             alignment = self.ui.comboAlignment.currentText()
             direction = self.ui.comboDirection.currentText()
             unused_pad = self.ui.checkViaInPad.isChecked()
-            bga = Fanout(footprint, self.pcb.board, via, track, 
+
+            self.fanout = Fanout(footprint, self.pcb.board, via, track, 
                          package, alignment, direction, unused_pad,
                          self.fanout_length, self.stagger_gap, self.via_pitch)
-            bga.fanout()
+            self.fanout.fanout()
 
     def on_package_changed(self):
         index = self.ui.comboPackage.currentIndex()
@@ -170,7 +187,6 @@ class MainWindow(QMainWindow):
         self.ui.comboAlignment.clear()
         self.ui.comboDirection.clear()
         
-        #if value == 'BGA':
         self.ui.comboDirection.clear()
         self.ui.comboAlignment.addItems(alignments)
         self.ui.comboDirection.addItems(directions)
@@ -178,6 +194,15 @@ class MainWindow(QMainWindow):
         self.ui.comboDirection.blockSignals(False)
         image = self.packages[index].alignments[0].directions[0].image
         self.update_image(image)
+
+        if value == 'BGA':
+            self.ui.textFanoutLength.setDisabled(True)
+            self.ui.textStaggerGap.setDisabled(True)
+            self.ui.textViaPitch.setDisabled(True)
+        else:
+            self.ui.textFanoutLength.setDisabled(False)
+            self.ui.textStaggerGap.setDisabled(False)
+            self.ui.textViaPitch.setDisabled(False)
 
     def on_alignment_changed(self):
         self.ui.comboDirection.blockSignals(True)

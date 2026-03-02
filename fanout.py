@@ -23,13 +23,18 @@ class Fanout:
         self.fanout_length= fanout_length
         self.stagger_gap = stagger_gap
         self.via_pitch = via_pitch
+        self.items: List[Union[Via, Track]] = []
         print(f"package: {package}")
         print(f"alignment: {alignment}")
         print(f"direction: {direction}")
 
+    def remove_items(self):
+        self.board.remove_items(self.items)
+        self.items = []
+
     def fanout(self):
         if self.package == "BGA":
-            print(f"package0: {self.package}")
+            #print(f"package0: {self.package}")
             match self.alignment:
                 case "Quadrant":
                     self.fanout_quadrant()
@@ -39,15 +44,17 @@ class Fanout:
                     self.fanout_xpattern()
                 case "Staggered":
                     self.fanout_staggered()
-        else:
-            print(f"package1: {self.package}")
-            print(self.detect_ic_shape())
-            px, py = self.get_peripheral_pitch()
-            print(f"x: {px}, y: {py}")
+        elif self.package == "SOIC/QFN":
+            #print(f"package1: {self.package}")
+            #print(self.detect_ic_shape())
+            #px, py = self.get_peripheral_pitch()
+            #print(f"x: {px}, y: {py}")
             self.fanout_peripheral()
+        else:
+            print("Connector/FPC")
     
     def fanout_quadrant(self):
-        items: List[Union[Via, Track]] = []
+        #items: List[Union[Via, Track]] = []
         angle_rad = self.footprint.orientation.to_radians()
         #center = self.footprint.position
         px, py, is_stag = get_pitch_and_stagger_info(self.footprint)
@@ -124,12 +131,12 @@ class Fanout:
             self.track.end = point
             self.via.net = pad.net
             self.via.position = point
-            items.append(add_via(self.via))
-            items.append(add_track(self.track))
+            self.items.append(add_via(self.via))
+            self.items.append(add_track(self.track))
 
         # Thêm vào board
-        self.board.create_items(items)
-        self.board.add_to_selection(items)
+        self.board.create_items(self.items)
+        self.board.add_to_selection(self.items)
 
     def fanout_diagonal(self):
         """
@@ -137,7 +144,7 @@ class Fanout:
         1. Đảm bảo via nằm chính xác trên đường chéo (hoặc đường ngang/dọc nếu là layout so le).
         2. Tự động chuyển góc và ưu tiên đi ngang (Horizontal Bias) tại các góc 45 độ.
         """
-        items: List[Union[Via, Track]] = []
+        #items: List[Union[Via, Track]] = []
         angle_rad = self.footprint.orientation.to_radians()
         px, py, is_stag = get_pitch_and_stagger_info(self.footprint)
         
@@ -210,12 +217,12 @@ class Fanout:
             self.track.end = point
             self.via.net = pad.net
             self.via.position = point
-            items.append(add_via(self.via))
-            items.append(add_track(self.track))
+            self.items.append(add_via(self.via))
+            self.items.append(add_track(self.track))
 
         # Thêm vào board
-        self.board.create_items(items)
-        self.board.add_to_selection(items)
+        self.board.create_items(self.items)
+        self.board.add_to_selection(self.items)
 
     def fanout_xpattern(self):
         """
@@ -223,7 +230,7 @@ class Fanout:
         Tạo hiệu ứng xoáy chiều kim đồng hồ (Clockwise) hoặc ngược chiều (Counterclockwise).
         Đã FIX: Đi dây (via) cho toàn bộ các Pad trên đường chéo, không bỏ sót pad nào.
         """
-        items: List[Union[Via, Track]] = []
+        #items: List[Union[Via, Track]] = []
         angle_rad = self.footprint.orientation.to_radians()
         px, py, is_stag = get_pitch_and_stagger_info(self.footprint)
         
@@ -302,12 +309,12 @@ class Fanout:
             self.track.end = point
             self.via.net = pad.net
             self.via.position = point
-            items.append(add_via(self.via))
-            items.append(add_track(self.track))
+            self.items.append(add_via(self.via))
+            self.items.append(add_track(self.track))
 
         # Thêm vào board
-        self.board.create_items(items)
-        self.board.add_to_selection(items)
+        self.board.create_items(self.items)
+        self.board.add_to_selection(self.items)
 
     def fanout_staggered(self):
         print("fanout_staggered")
@@ -317,7 +324,7 @@ class Fanout:
         - Horizontal: Via nằm ngang, luân phiên Trái/Phải theo từng hàng.
         - Vertical: Via nằm dọc, luân phiên Lên/Dưới theo từng cột.
         """
-        items: List[Union[Via, Track]] = []
+        #items: List[Union[Via, Track]] = []
         angle_rad = self.footprint.orientation.to_radians()
         px, py, is_stag = get_pitch_and_stagger_info(self.footprint)
         
@@ -392,20 +399,20 @@ class Fanout:
             track.net = pad.net
             track.start = pad.position
             track.end = point
-            items.append(track)
+            self.items.append(track)
 
             # Vẽ Via
             via = ViaData(self.via)
             via.net = pad.net
             via.position = point
-            items.append(via)
+            self.items.append(via)
 
             #items.append(add_via(self.via))
             #items.append(add_track(self.track))
 
         # Thêm vào board
-        self.board.create_items(items)
-        self.board.add_to_selection(items)
+        self.board.create_items(self.items)
+        self.board.add_to_selection(self.items)
 
     def get_peripheral_pitch(self):
         """
@@ -739,8 +746,10 @@ class Fanout:
                 )
                 items.append(add_via(via))
 
-        self.board.create_items(items)
-        self.board.add_to_selection(items)
+        #self.board.create_items(self.items)
+        #self.board.add_to_selection(self.items)
+        self.items = self.board.create_items(items)
+        self.board.add_to_selection(self.items)
                 
 def clean_nm(value, grid=100):
     """

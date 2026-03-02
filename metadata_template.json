@@ -1,8 +1,8 @@
 {
     "$schema": "https://go.kicad.org/pcm/schemas/v1",
     "name": "Fanout Tool",
-    "description": "Generate artistic, vector-based QR codes for PCBs with custom shapes, liquid styles, and logo embedding",
-    "description_full": "Generate artistic, vector-based QR codes for PCBs with custom shapes, liquid styles, and logo embedding",
+    "description": "Automate escape routing (fanout) for dense IC packages like QFN, QFP, and BGA",
+    "description_full": "A powerful Python-based plugin to automate escape routing (fanout) for dense IC packages like SOIC, QFN, QFP, and BGA in KiCad. It features advanced 3-segment routing algorithms, staggered alignments, and full parameter control to generate clean, DRC-error-free tracks and vias instantly.",
     "identifier": "vn.thanhduongvs.fanout-tool",
     "type": "plugin",
     "runtime": {
