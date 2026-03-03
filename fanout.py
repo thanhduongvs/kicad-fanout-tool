@@ -1,7 +1,7 @@
 from kipy.board import Board
 from kipy.board_types import Track, Via, FootprintInstance, Pad
 from kipy.geometry import Angle, Vector2
-from typing import List, Union, Dict, Tuple
+from typing import List, Union
 from utils import ViaData, TrackData, SOICEdges, PadLocal, add_via, add_track, get_pitch_and_stagger_info
 import math
 

@@ -183,7 +183,7 @@ def get_pitch_and_stagger_info(footprint: FootprintInstance):
             staggered_y = True
         x = round_pitch(real_pitch_x)
         y = round_pitch(real_pitch_y)
-        return real_pitch_x, y, (staggered_x or staggered_y)
+        return x, y, (staggered_x or staggered_y)
 
     finally:
         # Restore the original angle
