@@ -1,6 +1,6 @@
-from PySide6.QtWidgets import QMainWindow, QMessageBox, QVBoxLayout
 from PySide6.QtSvgWidgets import QSvgWidget
-from PySide6.QtCore import QTimer
+from PySide6.QtWidgets import QMainWindow, QMessageBox, QVBoxLayout, QSizePolicy
+from PySide6.QtCore import QTimer, Qt
 from gui import Ui_MainWindow
 from version import version
 from kicad_pcb import KiCadPCB
@@ -58,8 +58,10 @@ class MainWindow(QMainWindow):
         self.set_package()
         base_dir = os.path.dirname(__file__)
         init_img = os.path.join(base_dir, "preview", "quadrant.svg")
+        
         self.svg_widget = QSvgWidget(init_img)
-
+        self.svg_widget.renderer().setAspectRatioMode(Qt.AspectRatioMode.KeepAspectRatio)
+        self.svg_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         if self.ui.groupImagePreview.layout() is None:
             layout = QVBoxLayout(self.ui.groupImagePreview)
             layout.setContentsMargins(0, 0, 0, 0) 
@@ -251,6 +253,7 @@ class MainWindow(QMainWindow):
         abs_path = os.path.join(os.path.dirname(__file__), path)
         if os.path.exists(abs_path):
             self.svg_widget.load(abs_path)
+            self.svg_widget.renderer().setAspectRatioMode(Qt.AspectRatioMode.KeepAspectRatio)
         else:
             print(f"No preview image found for {abs_path}")
 

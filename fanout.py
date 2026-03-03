@@ -2,7 +2,7 @@ from kipy.board import Board
 from kipy.board_types import Track, Via, FootprintInstance, Pad
 from kipy.geometry import Angle, Vector2
 from typing import List, Union, Dict, Tuple
-from utils import ViaData, TrackData, add_via, add_track, get_pitch_and_stagger_info
+from utils import ViaData, TrackData, SOICEdges, PadLocal, add_via, add_track, get_pitch_and_stagger_info
 import math
 
 class Fanout:
@@ -58,8 +58,12 @@ class Fanout:
                     self.fanout_soic_staggered_linear()
                 case "Staggered Fan":
                     self.fanout_soic_staggered_fan()
-        else:
-            print("Connector/FPC")
+        elif self.package == "Connector/FPC":
+            match self.alignment:
+                case "Alternating Sides":
+                    self.fanout_connector_alternating()
+                case "Staggered One Side":
+                    self.fanout_connector_staggered()
 
     def fanout_via_in_pad(self):
         items: List[Via] = []
@@ -82,6 +86,7 @@ class Fanout:
         self.items = self.board.create_items(items)
         self.board.add_to_selection(self.items)
 
+    # --- BGA ---
     def fanout_bga_quadrant(self):
         items: List[Union[Via, Track]] = []
         angle_rad = self.footprint.orientation.to_radians()
@@ -307,8 +312,6 @@ class Fanout:
             ny = ly_pad / py if py != 0 else 0
 
             # 3. Determine the Triangular Region of the Pad
-            # FIX HERE: Use >= so pads lying exactly on the diagonal 
-            # are decisively assigned to the RIGHT or LEFT region.
             if abs(nx) >= abs(ny):
                 region = 'RIGHT' if nx >= 0 else 'LEFT'
             else:
@@ -376,7 +379,6 @@ class Fanout:
         self.board.add_to_selection(self.items)
 
     def fanout_bga_staggered(self):
-        print("fanout_staggered")
         """
         Orthogonal Fanout function (Horizontal / Vertical):
         - Supports both Square Grid and Staggered ICs.
@@ -478,162 +480,109 @@ class Fanout:
         self.items = self.board.create_items(items)
         self.board.add_to_selection(self.items)
     
-    # SOIC/QFN
-    def get_peripheral_pitch(self):
+    # --- SOIC/QFN ---
+    def soic_get_shape_and_pitch(self):
         """
-        Calculate specialized Pitch for peripheral ICs (SOP, QFP, QFN).
-        Uses the method of physically rotating the IC to 0 degrees to calculate coordinates most accurately.
+        Hàm gộp: Tính toán khoảng cách chân (Pitch) và nhận diện hình dáng (Shape) của IC.
+        Xoay IC về 0 độ một lần duy nhất để tối ưu hiệu suất tính toán tọa độ.
+        Trả về: (ic_shape: str, px: int, py: int)
         """
-        # 1. Save the initial rotation angle
         original_angle = self.footprint.orientation
         
         try:
-            # 2. Physically rotate the IC to 0 degrees
+            # 1. Xoay IC về 0 độ
             if original_angle.degrees != 0.0:
                 self.footprint.orientation = Angle.from_degrees(0.0)
-            
-            # At this point, the IC is upright. The Center and Pads have been updated by KiCad.
+                
             cx = clean_nm(self.footprint.position.x)
             cy = clean_nm(self.footprint.position.y)
-            
-            pads = self.footprint.definition.pads
             
             local_coords = []
-            
-            for pad in pads:
-                # Subtract the center to get relative coordinates (No sin/cos needed since angle is 0)
-                lx = clean_nm(pad.position.x) - cx
-                ly = clean_nm(pad.position.y) - cy
-                
-                # Skip the Thermal Pad in the exact center (distance from center > 0.2mm)
-                if abs(lx) > 200000 or abs(ly) > 200000:
-                    local_coords.append((lx, ly))
-                    
-            if len(local_coords) < 2:
-                return 0, 0
-
-            # 10um Tolerance
-            TOLERANCE = 10000
-            
-            px = float('inf')
-            py = float('inf')
-
-            # 3. Find the shortest distance between pads on the SAME EDGE
-            for i in range(len(local_coords)):
-                for j in range(i + 1, len(local_coords)):
-                    lx1, ly1 = local_coords[i]
-                    lx2, ly2 = local_coords[j]
-
-                    # If 2 pads are on the TOP or BOTTOM edge (Same Y)
-                    if abs(ly1 - ly2) < TOLERANCE:
-                        dist = abs(lx1 - lx2)
-                        if TOLERANCE < dist < px:
-                            px = dist
-
-                    # If 2 pads are on the LEFT or RIGHT edge (Same X)
-                    if abs(lx1 - lx2) < TOLERANCE:
-                        dist = abs(ly1 - ly2)
-                        if TOLERANCE < dist < py:
-                            py = dist
-
-            if px == float('inf'): px = 0
-            if py == float('inf'): py = 0
-
-            # If it's a 2-row IC (SOP), balance px and py
-            if px == 0 and py > 0: px = py
-            if py == 0 and px > 0: py = px
-
-            return int(round(px)), int(round(py))
-            
-        finally:
-            # 4. FAILSAFE: Whether the code succeeds or errors out,
-            # always return the IC to its original rotation.
-            if self.footprint.orientation.degrees != original_angle.degrees:
-                self.footprint.orientation = original_angle
-
-    def detect_ic_shape(self):
-        """
-        Detect IC shape: 2-SIDED_H (Vertical SOP), 2-SIDED_V (Horizontal SOP), or 4-SIDED (QFP)
-        Optimized: Physically rotates the IC to 0 degrees to completely eliminate trigonometric calculations (sin/cos).
-        """
-        original_angle = self.footprint.orientation
-        
-        try:
-            # 1. Rotate IC to 0 degrees so pads align straight along X, Y axes
-            if original_angle.degrees != 0.0:
-                self.footprint.orientation = Angle.from_degrees(0.0)
-                
-            cx = clean_nm(self.footprint.position.x)
-            cy = clean_nm(self.footprint.position.y)
-            pads = self.footprint.definition.pads
-            
             local_xs = []
             local_ys = []
             
+            # 2. Lấy tọa độ tương đối (loại bỏ Thermal Pad ở giữa)
+            pads = self.footprint.definition.pads
             for pad in pads:
-                # 2. Get relative coordinates extremely simply, no sin/cos needed
                 lx = clean_nm(pad.position.x) - cx
                 ly = clean_nm(pad.position.y) - cy
                 
-                # Skip Thermal Pad in the exact center (further than 0.1mm from center)
-                if abs(lx) > 100000 or abs(ly) > 100000: 
+                if abs(lx) > 100000 or abs(ly) > 100000: # Lọc pad > 0.1mm từ tâm
+                    local_coords.append((lx, ly))
                     local_xs.append(lx)
                     local_ys.append(ly)
                     
-            if not local_xs: 
-                return 'UNKNOWN'
-
-            TOLERANCE = 100000 
-            
-            # 3. Axis counting algorithm (Kept as is)
-            def count_unique_lines(coords):
-                if not coords: return 0
-                sorted_c = sorted(coords)
-                count = 1
-                base = sorted_c[0]
-                for c in sorted_c[1:]:
-                    if c - base > TOLERANCE:
-                        count += 1
-                        base = c
-                return count
+            if not local_coords: 
+                return 'UNKNOWN', 0, 0
 
             unique_x_lines = count_unique_lines(local_xs)
             unique_y_lines = count_unique_lines(local_ys)
 
             if unique_x_lines <= 2 and unique_y_lines > 2:
-                return '2-SIDED_H'
+                ic_shape = '2-SIDED_H'
             elif unique_y_lines <= 2 and unique_x_lines > 2:
-                return '2-SIDED_V'
+                ic_shape = '2-SIDED_V'
             elif unique_x_lines <= 2 and unique_y_lines <= 2:
                 span_x = max(local_xs) - min(local_xs)
                 span_y = max(local_ys) - min(local_ys)
-                return '2-SIDED_H' if span_x >= span_y else '2-SIDED_V'
+                ic_shape = '2-SIDED_H' if span_x >= span_y else '2-SIDED_V'
             else:
-                return '4-SIDED'
-                
+                ic_shape = '4-SIDED'
+
+            # --- 4. Tính toán Pitch ---
+            if len(local_coords) < 2:
+                return ic_shape, 0, 0
+
+            PITCH_TOLERANCE = 10000
+            px = float('inf')
+            py = float('inf')
+
+            for i in range(len(local_coords)):
+                for j in range(i + 1, len(local_coords)):
+                    lx1, ly1 = local_coords[i]
+                    lx2, ly2 = local_coords[j]
+
+                    # Pitch theo trục X (Cùng tọa độ Y)
+                    if abs(ly1 - ly2) < PITCH_TOLERANCE:
+                        dist = abs(lx1 - lx2)
+                        if PITCH_TOLERANCE < dist < px:
+                            px = dist
+
+                    # Pitch theo trục Y (Cùng tọa độ X)
+                    if abs(lx1 - lx2) < PITCH_TOLERANCE:
+                        dist = abs(ly1 - ly2)
+                        if PITCH_TOLERANCE < dist < py:
+                            py = dist
+
+            if px == float('inf'): px = 0
+            if py == float('inf'): py = 0
+
+            # Cân bằng Pitch cho các dòng IC 2 hàng chân (SOP)
+            if px == 0 and py > 0: px = py
+            if py == 0 and px > 0: py = px
+
+            return ic_shape, int(round(px)), int(round(py))
+            
         finally:
-            # 4. FAILSAFE: Always return IC to the old rotation angle regardless of the situation
+            # 5. Phục hồi góc xoay cũ
             if self.footprint.orientation.degrees != original_angle.degrees:
                 self.footprint.orientation = original_angle
-    
-    def _prepare_soic_qfn_data(self):
-        """Helper function: Prepare data and classify pads into 4 edges."""
+
+    def soic_prepare_data(self):
         angle_rad = self.footprint.orientation.to_radians()
         cos_a = math.cos(angle_rad)
         sin_a = math.sin(angle_rad)
         
-        px, py = self.get_peripheral_pitch()
+        ic_shape, px, py = self.soic_get_shape_and_pitch()
+        
         valid_pitches = [p for p in (px, py) if p > 0]
         ic_pitch = min(valid_pitches) if valid_pitches else 500000
         
         cx = clean_nm(self.footprint.position.x)
         cy = clean_nm(self.footprint.position.y)
         pads = self.footprint.definition.pads
-        ic_shape = self.detect_ic_shape()
         
-        edges: Dict[str, List[Tuple[any, float, float]]] = {
-            'LEFT': [], 'RIGHT': [], 'TOP': [], 'BOTTOM': []
-        }
+        edges = SOICEdges()
         
         local_pads = []
         max_x, max_y = 0, 0
@@ -656,130 +605,151 @@ class Fanout:
             else: 
                 if abs(lx_pad) >= abs(ly_pad): edge = 'RIGHT' if lx_pad > 0 else 'LEFT'
                 else: edge = 'BOTTOM' if ly_pad > 0 else 'TOP'
-            if edge: edges[edge].append((pad, lx_pad, ly_pad))
+            if edge: edges.add_pad(edge, PadLocal(pad, lx_pad, ly_pad))
 
         spread_factor = 1.0 if ic_shape != '4-SIDED' else 0.25
-        base_stub = self.fanout_length
-        stagger_gap = self.stagger_gap
-        effective_via_pitch = self.via_pitch if self.via_pitch > 0 else ic_pitch
-
-        return edges, ic_pitch, spread_factor, base_stub, stagger_gap, effective_via_pitch, cos_a, sin_a
+        return edges, ic_pitch, spread_factor
 
     def fanout_soic_linear_escape(self):
-        edges, ic_pitch, _, base_stub, _, _, cos_a, sin_a = self._prepare_soic_qfn_data()
+        angle_rad = self.footprint.orientation.to_radians()
+        cos_a = math.cos(angle_rad)
+        sin_a = math.sin(angle_rad)
+        base_stub = self.fanout_length
+        edges, _, _ = self.soic_prepare_data()
         items: List[Union[Via, Track]] = []
 
         for edge, pad_list in edges.items():
-            pad_list: List[Tuple[Pad, float, float]]
             if not pad_list: continue
-            if edge in ['LEFT', 'RIGHT']: pad_list.sort(key=lambda item: item[2])
-            else: pad_list.sort(key=lambda item: item[1])
+            
+            # Sắp xếp pad để chống chéo dây
+            if edge in ['LEFT', 'RIGHT']:
+                pad_list.sort(key=lambda item: item.ly)
+            else:
+                pad_list.sort(key=lambda item: item.lx)
 
-            for pad_index, (pad, lx_pad, ly_pad) in enumerate(pad_list):
+            for pad_index, pad_loc in enumerate(pad_list):
+                pad = pad_loc.pad
+                
                 # --- SKIP UNCONNECTED PADS ---
                 if self.unused_pad:
                     net_name = pad.net.name.lower()
                     if net_name == "" or "unconnected" in net_name: continue
 
-                p1_local_x = base_stub
-                p1_local_y = 0
-                via_local_x = base_stub
-                via_local_y = 0
-                
-                # Calculate segments
-                p2_local_x = via_local_x
-                p2_local_y = 0
-                p3_local_x = via_local_x
-                p3_local_y = 0
-
-                # Direction & Rotate & Draw
+                # Xác định hướng đi (Inside / Outside / Both)
                 dir_m = -1.0 if self.direction == 'Inside' else 1.0
-                if self.direction == 'Both sides': dir_m = 1.0 if pad_index % 2 == 0 else -1.0
+                if self.direction == 'Both sides': 
+                    dir_m = 1.0 if pad_index % 2 == 0 else -1.0
                 
-                p1_local_x *= dir_m; p2_local_x *= dir_m; p3_local_x *= dir_m; via_local_x *= dir_m
+                # Chiều dài thực tế của vector track
+                stub = base_stub * dir_m
                 
-                lx1, ly1, lx2, ly2, lx3, ly3 = 0,0,0,0,0,0
-                if edge == 'RIGHT': lx1, ly1 = p1_local_x, p1_local_y; lx2, ly2 = p2_local_x, p2_local_y; lx3, ly3 = p3_local_x, p3_local_y
-                elif edge == 'LEFT': lx1, ly1 = -p1_local_x, p1_local_y; lx2, ly2 = -p2_local_x, p2_local_y; lx3, ly3 = -p3_local_x, p3_local_y
-                elif edge == 'BOTTOM': lx1, ly1 = p1_local_y, p1_local_x; lx2, ly2 = p2_local_y, p2_local_x; lx3, ly3 = p3_local_y, p3_local_x
-                elif edge == 'TOP': lx1, ly1 = p1_local_y, -p1_local_x; lx2, ly2 = p2_local_y, -p2_local_x; lx3, ly3 = p3_local_y, -p3_local_x
+                # Map vector vào trục tọa độ tương đối tùy theo cạnh của IC
+                lx1, ly1 = 0, 0
+                if edge == 'RIGHT':
+                    lx1, ly1 = stub, 0
+                elif edge == 'LEFT':
+                    lx1, ly1 = -stub, 0
+                elif edge == 'BOTTOM':
+                    lx1, ly1 = 0, stub
+                elif edge == 'TOP':
+                    lx1, ly1 = 0, -stub
 
+                # Xoay vector bằng ma trận và cộng với gốc tọa độ pad
                 g_p1_x, g_p1_y = to_global(lx1, ly1, pad.position, cos_a, sin_a)
+                target_point = Vector2.from_xy(g_p1_x, g_p1_y)
                 
-                items.append(add_track(TrackData(self.track.width, self.track.layer, pad.net, pad.position, Vector2.from_xy(g_p1_x, g_p1_y))))
-                items.append(add_via(ViaData(self.via.via_type, self.via.via_diameter, self.via.via_hole, self.via.start_layer, self.via.end_layer, pad.net, Vector2.from_xy(g_p1_x, g_p1_y))))
+                # Khởi tạo Track và Via tại đích đến
+                items.append(add_track(TrackData(self.track.width, self.track.layer, pad.net, pad.position, target_point)))
+                items.append(add_via(ViaData(self.via.via_type, self.via.via_diameter, self.via.via_hole, self.via.start_layer, self.via.end_layer, pad.net, target_point)))
 
         self.items = self.board.create_items(items)
         self.board.add_to_selection(self.items)
 
     def fanout_soic_staggered_linear(self):
-        edges, ic_pitch, _, base_stub, stagger_gap, _, cos_a, sin_a = self._prepare_soic_qfn_data()
         items: List[Union[Via, Track]] = []
+        angle_rad = self.footprint.orientation.to_radians()
+        cos_a = math.cos(angle_rad)
+        sin_a = math.sin(angle_rad)
+        base_stub = self.fanout_length
+        stagger_gap = self.stagger_gap
+        edges, _, _ = self.soic_prepare_data()
 
         for edge, pad_list in edges.items():
-            pad_list: List[Tuple[Pad, float, float]]
             if not pad_list: continue
-            if edge in ['LEFT', 'RIGHT']: pad_list.sort(key=lambda item: item[2])
-            else: pad_list.sort(key=lambda item: item[1])
+            
+            # Sắp xếp pad để chống chéo dây
+            if edge in ['LEFT', 'RIGHT']:
+                pad_list.sort(key=lambda item: item.ly)
+            else:
+                pad_list.sort(key=lambda item: item.lx)
 
-            for pad_index, (pad, lx_pad, ly_pad) in enumerate(pad_list):
+            for pad_index, pad_loc in enumerate(pad_list):
+                pad = pad_loc.pad
+                
                 # --- SKIP UNCONNECTED PADS ---
                 if self.unused_pad:
                     net_name = pad.net.name.lower()
                     if net_name == "" or "unconnected" in net_name: continue
 
-                via_local_x = base_stub + stagger_gap if pad_index % 2 != 0 else base_stub
-                p1_local_x = via_local_x
-                p1_local_y = 0
-                via_local_y = 0
-
-                # Calculate segments
-                p2_local_x = via_local_x
-                p2_local_y = 0
-                p3_local_x = via_local_x
-                p3_local_y = 0
-
-                # Direction & Rotate & Draw
+                # Xác định hướng đi (Inside / Outside / Both)
                 dir_m = -1.0 if self.direction == 'Inside' else 1.0
-                if self.direction == 'Both sides': dir_m = 1.0 if pad_index % 2 == 0 else -1.0
+                if self.direction == 'Both sides': 
+                    dir_m = 1.0 if pad_index % 2 == 0 else -1.0
                 
-                p1_local_x *= dir_m; p2_local_x *= dir_m; p3_local_x *= dir_m; via_local_x *= dir_m
+                # Tính toán chiều dài track: Chân lẻ bị đẩy ra xa thêm 1 khoảng stagger_gap
+                current_stub = base_stub + stagger_gap if pad_index % 2 != 0 else base_stub
+                stub = current_stub * dir_m
                 
-                lx1, ly1, lx2, ly2, lx3, ly3 = 0,0,0,0,0,0
-                if edge == 'RIGHT': lx1, ly1 = p1_local_x, p1_local_y; lx2, ly2 = p2_local_x, p2_local_y; lx3, ly3 = p3_local_x, p3_local_y
-                elif edge == 'LEFT': lx1, ly1 = -p1_local_x, p1_local_y; lx2, ly2 = -p2_local_x, p2_local_y; lx3, ly3 = -p3_local_x, p3_local_y
-                elif edge == 'BOTTOM': lx1, ly1 = p1_local_y, p1_local_x; lx2, ly2 = p2_local_y, p2_local_x; lx3, ly3 = p3_local_y, p3_local_x
-                elif edge == 'TOP': lx1, ly1 = p1_local_y, -p1_local_x; lx2, ly2 = p2_local_y, -p2_local_x; lx3, ly3 = p3_local_y, -p3_local_x
+                # Map vector vào trục tọa độ tương đối tùy theo cạnh của IC
+                lx1, ly1 = 0, 0
+                if edge == 'RIGHT':
+                    lx1, ly1 = stub, 0
+                elif edge == 'LEFT':
+                    lx1, ly1 = -stub, 0
+                elif edge == 'BOTTOM':
+                    lx1, ly1 = 0, stub
+                elif edge == 'TOP':
+                    lx1, ly1 = 0, -stub
 
+                # Xoay vector bằng ma trận và cộng với gốc tọa độ pad
                 g_p1_x, g_p1_y = to_global(lx1, ly1, pad.position, cos_a, sin_a)
+                target_point = Vector2.from_xy(g_p1_x, g_p1_y)
                 
-                items.append(add_track(TrackData(self.track.width, self.track.layer, pad.net, pad.position, Vector2.from_xy(g_p1_x, g_p1_y))))
-                items.append(add_via(ViaData(self.via.via_type, self.via.via_diameter, self.via.via_hole, self.via.start_layer, self.via.end_layer, pad.net, Vector2.from_xy(g_p1_x, g_p1_y))))
+                # Khởi tạo Track và Via tại đích đến
+                items.append(add_track(TrackData(self.track.width, self.track.layer, pad.net, pad.position, target_point)))
+                items.append(add_via(ViaData(self.via.via_type, self.via.via_diameter, self.via.via_hole, self.via.start_layer, self.via.end_layer, pad.net, target_point)))
 
         self.items = self.board.create_items(items)
         self.board.add_to_selection(self.items)
 
     def fanout_soic_fan_escape(self):
-        edges, ic_pitch, spread_factor, base_stub, _, effective_via_pitch, cos_a, sin_a = self._prepare_soic_qfn_data()
         items: List[Union[Via, Track]] = []
+        angle_rad = self.footprint.orientation.to_radians()
+        cos_a = math.cos(angle_rad)
+        sin_a = math.sin(angle_rad)
+        base_stub = self.fanout_length
+        effective_via_pitch = self.via_pitch if self.via_pitch > 0 else ic_pitch
+        edges, ic_pitch, spread_factor = self.soic_prepare_data()
         safe_stub = ic_pitch * 1.5 
 
         for edge, pad_list in edges.items():
-            pad_list: List[Tuple[Pad, float, float]]
             if not pad_list: continue
             
             if edge in ['LEFT', 'RIGHT']: 
-                pad_list.sort(key=lambda item: item[2])
-                pad_coords = [item[2] for item in pad_list]
+                pad_list.sort(key=lambda item: item.ly)
+                pad_coords = [item.ly for item in pad_list]
             else: 
-                pad_list.sort(key=lambda item: item[1])
-                pad_coords = [item[1] for item in pad_list]
+                pad_list.sort(key=lambda item: item.lx)
+                pad_coords = [item.lx for item in pad_list]
                 
             mid_idx = (len(pad_list) - 1) / 2.0
             mid_coord = (pad_coords[0] + pad_coords[-1]) / 2.0
 
-            for pad_index, (pad, lx_pad, ly_pad) in enumerate(pad_list):
-                # --- SKIP UNCONNECTED PADS ---
+            for pad_index, pad_loc in enumerate(pad_list):
+                pad = pad_loc.pad
+                lx_pad = pad_loc.lx
+                ly_pad = pad_loc.ly
+                
                 if self.unused_pad:
                     net_name = pad.net.name.lower()
                     if net_name == "" or "unconnected" in net_name: continue
@@ -790,7 +760,6 @@ class Fanout:
                 p1_local_x = safe_stub
                 p1_local_y = 0
 
-                # Calculate segments
                 if via_local_y != 0:
                     p2_local_x = p1_local_x + abs(via_local_y)
                     p2_local_y = via_local_y
@@ -798,14 +767,13 @@ class Fanout:
                     p2_local_x = p1_local_x
                     p2_local_y = 0
 
-                if p2_local_x > via_local_x: # Fix Overshoot
+                if p2_local_x > via_local_x:
                     p2_local_x = via_local_x
                     p1_local_x = max(0, via_local_x - abs(via_local_y))
                     
                 p3_local_x = via_local_x
                 p3_local_y = via_local_y
 
-                # Direction & Rotate & Draw
                 dir_m = -1.0 if self.direction == 'Inside' else 1.0
                 if self.direction == 'Both sides': dir_m = 1.0 if pad_index % 2 == 0 else -1.0
                 p1_local_x *= dir_m; p2_local_x *= dir_m; p3_local_x *= dir_m; via_local_x *= dir_m
@@ -829,26 +797,34 @@ class Fanout:
         self.board.add_to_selection(self.items)
 
     def fanout_soic_staggered_fan(self):
-        edges, ic_pitch, spread_factor, base_stub, stagger_gap, effective_via_pitch, cos_a, sin_a = self._prepare_soic_qfn_data()
         items: List[Union[Via, Track]] = []
+        angle_rad = self.footprint.orientation.to_radians()
+        cos_a = math.cos(angle_rad)
+        sin_a = math.sin(angle_rad)
+        base_stub = self.fanout_length
+        stagger_gap =  self.stagger_gap
+        effective_via_pitch = self.via_pitch if self.via_pitch > 0 else ic_pitch
+        edges, ic_pitch, spread_factor = self.soic_prepare_data()
         safe_stub = ic_pitch * 1.5 
 
         for edge, pad_list in edges.items():
-            pad_list: List[Tuple[Pad, float, float]]
             if not pad_list: continue
             
             if edge in ['LEFT', 'RIGHT']: 
-                pad_list.sort(key=lambda item: item[2])
-                pad_coords = [item[2] for item in pad_list]
+                pad_list.sort(key=lambda item: item.ly)
+                pad_coords = [item.ly for item in pad_list]
             else: 
-                pad_list.sort(key=lambda item: item[1])
-                pad_coords = [item[1] for item in pad_list]
+                pad_list.sort(key=lambda item: item.lx)
+                pad_coords = [item.lx for item in pad_list]
                 
             mid_idx = (len(pad_list) - 1) / 2.0
             mid_coord = (pad_coords[0] + pad_coords[-1]) / 2.0
 
-            for pad_index, (pad, lx_pad, ly_pad) in enumerate(pad_list):
-                # --- SKIP UNCONNECTED PADS ---
+            for pad_index, pad_loc in enumerate(pad_list):
+                pad = pad_loc.pad
+                lx_pad = pad_loc.lx
+                ly_pad = pad_loc.ly
+                
                 if self.unused_pad:
                     net_name = pad.net.name.lower()
                     if net_name == "" or "unconnected" in net_name: continue
@@ -860,7 +836,6 @@ class Fanout:
                 p1_local_x = safe_stub + stagger_gap * 0.5 if pad_index % 2 != 0 else safe_stub
                 p1_local_y = 0
 
-                # Calculate segments
                 if via_local_y != 0:
                     p2_local_x = p1_local_x + abs(via_local_y)
                     p2_local_y = via_local_y
@@ -868,14 +843,13 @@ class Fanout:
                     p2_local_x = p1_local_x
                     p2_local_y = 0
 
-                if p2_local_x > via_local_x: # Fix Overshoot
+                if p2_local_x > via_local_x:
                     p2_local_x = via_local_x
                     p1_local_x = max(0, via_local_x - abs(via_local_y))
 
                 p3_local_x = via_local_x
                 p3_local_y = via_local_y
 
-                # Direction & Rotate & Draw
                 dir_m = -1.0 if self.direction == 'Inside' else 1.0
                 if self.direction == 'Both sides': dir_m = 1.0 if pad_index % 2 == 0 else -1.0
                 p1_local_x *= dir_m; p2_local_x *= dir_m; p3_local_x *= dir_m; via_local_x *= dir_m
@@ -894,6 +868,115 @@ class Fanout:
                 if via_local_y != 0: items.append(add_track(TrackData(self.track.width, self.track.layer, pad.net, v_p1, v_p2)))
                 if abs(p3_local_x) > abs(p2_local_x): items.append(add_track(TrackData(self.track.width, self.track.layer, pad.net, v_p2, v_p3)))
                 items.append(add_via(ViaData(self.via.via_type, self.via.via_diameter, self.via.via_hole, self.via.start_layer, self.via.end_layer, pad.net, v_p3)))
+
+        self.items = self.board.create_items(items)
+        self.board.add_to_selection(self.items)
+
+    # --- CONNECTOR / FPC ---
+    def connector_prepare_data(self):
+        """
+        Chuẩn bị dữ liệu cho Connector:
+        Tự động nhận diện trục trải dài của rào cắm (X hoặc Y) và sắp xếp các chân theo trục đó.
+        """
+        angle_rad = self.footprint.orientation.to_radians()
+        cos_a = math.cos(angle_rad)
+        sin_a = math.sin(angle_rad)
+
+        cx = clean_nm(self.footprint.position.x)
+        cy = clean_nm(self.footprint.position.y)
+
+        local_pads = []
+        for pad in self.footprint.definition.pads:
+            out_gx = clean_nm(pad.position.x) - cx
+            out_gy = clean_nm(pad.position.y) - cy
+            lx = out_gx * cos_a - out_gy * sin_a
+            ly = out_gx * sin_a + out_gy * cos_a
+            local_pads.append(PadLocal(pad, lx, ly))
+
+        if not local_pads:
+            return [], 'X', cos_a, sin_a
+
+        # Tính toán độ sải (span) để tìm trục chính của rào cắm
+        xs = [p.lx for p in local_pads]
+        ys = [p.ly for p in local_pads]
+        span_x = max(xs) - min(xs)
+        span_y = max(ys) - min(ys)
+
+        # Sắp xếp pad dọc theo trục chính để lấy thứ tự chuẩn xác
+        if span_x >= span_y:
+            primary_axis = 'X'
+            local_pads.sort(key=lambda p: p.lx)
+        else:
+            primary_axis = 'Y'
+            local_pads.sort(key=lambda p: p.ly)
+
+        return local_pads, primary_axis, cos_a, sin_a
+
+    def fanout_connector_alternating(self):
+        local_pads, primary_axis, cos_a, sin_a = self.connector_prepare_data()
+        items: List[Union[Via, Track]] = []
+        base_stub = self.fanout_length
+
+        for pad_index, pad_loc in enumerate(local_pads):
+            pad = pad_loc.pad
+            if self.unused_pad:
+                net_name = pad.net.name.lower()
+                if net_name == "" or "unconnected" in net_name: continue
+
+            # Hướng đi zíc-zắc: chẵn đi 1 hướng (1.0), lẻ đi hướng ngược lại (-1.0)
+            dir_m = 1.0 if pad_index % 2 == 0 else -1.0
+
+            lx1, ly1 = 0, 0
+            if self.direction == 'Left/Right':
+                lx1 = base_stub * dir_m
+            elif self.direction == 'Top/Bottom':
+                ly1 = base_stub * dir_m
+            else:
+                # Fallback thông minh nếu không có direction cụ thể
+                if primary_axis == 'X': ly1 = base_stub * dir_m
+                else: lx1 = base_stub * dir_m
+
+            g_p1_x, g_p1_y = to_global(lx1, ly1, pad.position, cos_a, sin_a)
+            target_point = Vector2.from_xy(g_p1_x, g_p1_y)
+
+            items.append(add_track(TrackData(self.track.width, self.track.layer, pad.net, pad.position, target_point)))
+            items.append(add_via(ViaData(self.via.via_type, self.via.via_diameter, self.via.via_hole, self.via.start_layer, self.via.end_layer, pad.net, target_point)))
+
+        self.items = self.board.create_items(items)
+        self.board.add_to_selection(self.items)
+
+    def fanout_connector_staggered(self):
+        local_pads, primary_axis, cos_a, sin_a = self.connector_prepare_data()
+        items: List[Union[Via, Track]] = []
+
+        for pad_index, pad_loc in enumerate(local_pads):
+            pad = pad_loc.pad
+            if self.unused_pad:
+                net_name = pad.net.name.lower()
+                if net_name == "" or "unconnected" in net_name: continue
+
+            # Độ dài so le: chân lẻ bị đẩy ra xa thêm một khoảng stagger_gap
+            current_stub = self.fanout_length + (self.stagger_gap if pad_index % 2 != 0 else 0)
+
+            lx1, ly1 = 0, 0
+            # Áp dụng chính xác hướng đi dựa trên tùy chọn từ giao diện
+            if self.direction == 'Left':
+                lx1 = -current_stub
+            elif self.direction == 'Right':
+                lx1 = current_stub
+            elif self.direction == 'Top':
+                ly1 = -current_stub
+            elif self.direction == 'Bottom':
+                ly1 = current_stub
+            else:
+                if primary_axis == 'X': ly1 = current_stub
+                else: lx1 = current_stub
+
+            g_p1_x, g_p1_y = to_global(lx1, ly1, pad.position, cos_a, sin_a)
+            target_point = Vector2.from_xy(g_p1_x, g_p1_y)
+
+            items.append(add_track(TrackData(self.track.width, self.track.layer, pad.net, pad.position, target_point)))
+            items.append(add_via(ViaData(self.via.via_type, self.via.via_diameter, self.via.via_hole, self.via.start_layer, self.via.end_layer, pad.net, target_point)))
 
         self.items = self.board.create_items(items)
         self.board.add_to_selection(self.items)
@@ -917,5 +1000,17 @@ def to_global(lx: float, ly: float, pad_position: Vector2, cos_a: float, sin_a: 
     dx = lx * cos_a + ly * sin_a
     dy = -lx * sin_a + ly * cos_a
     return clean_nm(pad_position.x + dx), clean_nm(pad_position.y + dy)
+
+def count_unique_lines(coords):
+    SHAPE_TOLERANCE = 100000 
+    if not coords: return 0
+    sorted_c = sorted(coords)
+    count = 1
+    base = sorted_c[0]
+    for c in sorted_c[1:]:
+        if c - base > SHAPE_TOLERANCE:
+            count += 1
+            base = c
+    return count
 
 # https://www.youtube.com/watch?v=yHuuwNH7QxU

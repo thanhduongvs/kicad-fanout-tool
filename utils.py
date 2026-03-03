@@ -2,9 +2,9 @@ from kipy.board_types import FootprintInstance, Net, Pad, Track, Via, PadStack, 
 from kipy.geometry import Vector2
 from collections import defaultdict
 from kipy.proto.board.board_types_pb2 import ViaType, PadStackType
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from kipy.geometry import Angle
-from typing import Sequence
+from typing import Sequence, List
 
 @dataclass
 class TrackData:
@@ -24,6 +24,31 @@ class ViaData:
     net: Net
     position: Vector2
 
+@dataclass
+class PadLocal:
+    pad: Pad
+    lx: float
+    ly: float
+
+@dataclass
+class SOICEdges:
+    LEFT: List[PadLocal] = field(default_factory=list)
+    RIGHT: List[PadLocal] = field(default_factory=list)
+    TOP: List[PadLocal] = field(default_factory=list)
+    BOTTOM: List[PadLocal] = field(default_factory=list)
+
+    def add_pad(self, edge_name: str, item: PadLocal):
+        if hasattr(self, edge_name):
+            getattr(self, edge_name).append(item)
+
+    def items(self):
+        return [
+            ('LEFT', self.LEFT),
+            ('RIGHT', self.RIGHT),
+            ('TOP', self.TOP),
+            ('BOTTOM', self.BOTTOM)
+        ]
+    
 def add_via(data: ViaData) -> Via:
     drill = DrillProperties()
     drill.start_layer = data.start_layer # BoardLayer.BL_F_Cu

@@ -50,10 +50,13 @@ Add our custom repo to **the Plugin and Content Manager**, the URL is:
 5. Click **Run Fanout** to generate the tracks and vias.
 6. (Optional) Use the built-in **Undo** button if you want to tweak parameters and try again.
 
+## Demo Video
+[![Watch the video](https://img.youtube.com/vi/dmmUoKqVd8w/sddefault.jpg)](https://youtu.be/dmmUoKqVd8w)
+
 ## 📦 Libraries Used
-This project relies on the following libraries:
+This project relies on several powerful open-source libraries:
+ - [kicad-python](https://pypi.org/project/kicad-python/): KiCad API Python Bindings.
  - [PySide6](https://pypi.org/project/PySide6/): The official Python module from the Qt for Python project, used for the graphical user interface.
- - [KiPy (kicad-python)](https://gitlab.com/kicad/code/kicad/-/tree/master/pcbnew/python/kipy): The official native Python API for KiCad 9.0 used for board manipulation and geometric calculations.
 
 ## 📜 License and Credits
 
