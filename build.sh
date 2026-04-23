@@ -8,13 +8,13 @@ if [ -z "$ID_NAME" ]; then
 fi
 
 echo "Detected Identifier: $ID_NAME"
-
+VERSION=10.0
 DIR_INSTALL=${ID_NAME//./_}
 TEMP_NAME=${ID_NAME##*.}
 DIR_INSTALL_DEV=${TEMP_NAME//-/_}
-PATH_INSTALL_PLUGIN="$HOME/.local/share/kicad/9.0/3rdparty/plugins/"
-PATH_INSTALL_RESOURCE="$HOME/.local/share/kicad/9.0/3rdparty/resources/"
-PATH_INSTALL_DEV="$HOME/.local/share/kicad/9.0/plugins/"
+PATH_INSTALL_PLUGIN="$HOME/.local/share/kicad/$VERSION/3rdparty/plugins/"
+PATH_INSTALL_RESOURCE="$HOME/.local/share/kicad/$VERSION/3rdparty/resources/"
+PATH_INSTALL_DEV="$HOME/.local/share/kicad/$VERSION/plugins/"
 FULL_PLUGIN="$PATH_INSTALL_PLUGIN$DIR_INSTALL"
 FULL_RESOURCE="$PATH_INSTALL_RESOURCE$DIR_INSTALL"
 FULL_DEV="$PATH_INSTALL_DEV$DIR_INSTALL_DEV"
