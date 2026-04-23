@@ -1,2 +1,2 @@
-kicad-python>=0.5.0
+kicad-python>=0.7.1
 PySide6
