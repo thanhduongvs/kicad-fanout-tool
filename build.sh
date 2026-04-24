@@ -8,6 +8,7 @@ if [ -z "$ID_NAME" ]; then
 fi
 
 echo "Detected Identifier: $ID_NAME"
+
 VERSION=10.0
 DIR_INSTALL=${ID_NAME//./_}
 TEMP_NAME=${ID_NAME##*.}
