@@ -25,7 +25,9 @@ Routing dense components like QFNs, QFPs, and BGAs manually can be tedious and t
 
 ### Via KiCad Plugin and Content Manager (Recommended)
 Add our custom repo to **the Plugin and Content Manager**, the URL is:
-`https://raw.githubusercontent.com/thanhduongvs/kicad-repository/main/repository.json`
+```
+https://raw.githubusercontent.com/thanhduongvs/kicad-repository/main/repository.json
+```
 
 ![pcm](images/pcm.png)
 

@@ -104,7 +104,7 @@ release() {
     sed -i -e "s/DOWNLOAD_SIZE/$size/g" metadata.json
     sed -i -e "s/INSTALL_SIZE/$installSize/g" metadata.json
 
-    mv $name pcm/
+    mv $name releases/
 }
 
 if [ "$1" = "install" ] ; then
