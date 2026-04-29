@@ -399,7 +399,7 @@ class Fanout:
             
         pads = self.footprint.definition.pads
         
-        is_horizontal = (self.alignment == 'Horizontal')
+        is_horizontal = (self.direction == 'Horizontal')
         
         for pad in pads:
             if self.unused_pad:

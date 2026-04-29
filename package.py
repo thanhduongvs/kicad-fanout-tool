@@ -45,4 +45,4 @@ class Packages:
 
 def get_packages():
     packages = Packages()
-    return packages.packages   
+    return packages.packages

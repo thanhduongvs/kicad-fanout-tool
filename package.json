@@ -69,15 +69,15 @@
                     "direction": [
                         {
                             "name": "Outside",
-                            "image": "preview/linear-escape.svg"
+                            "image": "preview/linear-escape-outside.svg"
                         },
                         {
                             "name": "Inside",
-                            "image": "preview/linear-escape.svg"
+                            "image": "preview/linear-escape-inside.svg"
                         },
                         {
                             "name": "Both sides",
-                            "image": "preview/linear-escape.svg"
+                            "image": "preview/linear-escape-both.svg"
                         }
                     ]
                 },

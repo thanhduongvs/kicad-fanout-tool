@@ -85,6 +85,9 @@ class MainWindow(QMainWindow):
     def load_initial_data(self):
         connected, status = self.pcb.connect_kicad()
         if connected:
+            self.ui.comboReference.clear()
+            self.ui.comboStartLayer.clear()
+            self.ui.comboEndLayer.clear()
             self.ui.comboReference.addItems(self.pcb.references)
             self.ui.comboStartLayer.addItems(self.pcb.layers)
             self.ui.comboEndLayer.addItems(self.pcb.layers)
